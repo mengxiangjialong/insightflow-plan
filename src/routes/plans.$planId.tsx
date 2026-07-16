@@ -3,11 +3,11 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { api } from "@/lib/api";
-import type { Phase } from "@/lib/mock-data";
+import type { Phase, Plan } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/plans/$planId")({
   loader: ({ params, context }) =>
-    context.queryClient.ensureQueryData<import("@/lib/mock-data").Plan>({
+    context.queryClient.ensureQueryData({
       queryKey: ["plan", params.planId],
       queryFn: () => api.getPlan(params.planId),
     }),
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/plans/$planId")({
 
 function PlanDetailPage() {
   const { planId } = Route.useParams();
-  const plan = Route.useLoaderData();
+  const plan = Route.useLoaderData() as Plan;
 
   return (
     <AppShell title={plan.title} breadcrumb={`PLANS / ${planId.toUpperCase()}`}>
