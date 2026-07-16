@@ -8,15 +8,13 @@ const ThemeCtx = createContext<Ctx>({ theme: "light", toggle: () => {}, setTheme
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("light");
 
-  // Hydrate from localStorage after mount (SSR-safe).
   useEffect(() => {
-    const stored = (typeof window !== "undefined" && window.localStorage.getItem("theme")) as
-      | Theme
-      | null;
+    const stored = (typeof window !== "undefined" &&
+      window.localStorage.getItem("theme")) as Theme | null;
     const prefersDark =
-      typeof window !== "undefined" && window.matchMedia?.("(prefers-color-scheme: dark)").matches;
-    const initial: Theme = stored ?? (prefersDark ? "dark" : "light");
-    setThemeState(initial);
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-color-scheme: dark)").matches;
+    setThemeState(stored ?? (prefersDark ? "dark" : "light"));
   }, []);
 
   useEffect(() => {
@@ -25,10 +23,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     window.localStorage.setItem("theme", theme);
   }, [theme]);
 
-  const setTheme = (t: Theme) => setThemeState(t);
-  const toggle = () => setThemeState((t) => (t === "dark" ? "light" : "dark"));
-
-  return <ThemeCtx.Provider value={{ theme, toggle, setTheme }}>{children}</ThemeCtx.Provider>;
+  return (
+    <ThemeCtx.Provider
+      value={{ theme, toggle: () => setThemeState((t) => (t === "dark" ? "light" : "dark")), setTheme: setThemeState }}
+    >
+      {children}
+    </ThemeCtx.Provider>
+  );
 }
 
 export const useTheme = () => useContext(ThemeCtx);
