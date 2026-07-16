@@ -7,7 +7,7 @@ import type { Phase } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/plans/$planId")({
   loader: ({ params, context }) =>
-    context.queryClient.ensureQueryData({
+    context.queryClient.ensureQueryData<import("@/lib/mock-data").Plan>({
       queryKey: ["plan", params.planId],
       queryFn: () => api.getPlan(params.planId),
     }),
