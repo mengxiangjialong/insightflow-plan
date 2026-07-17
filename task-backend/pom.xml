@@ -8,10 +8,10 @@
         <relativePath/>
     </parent>
     <groupId>com.inkplan</groupId>
-    <artifactId>inkplan-backend</artifactId>
+    <artifactId>task-backend</artifactId>
     <version>0.1.0</version>
-    <name>inkplan-backend</name>
-    <description>InkPlan AI Learning Platform · Backend</description>
+    <name>task-backend</name>
+    <description>Task · AI Learning Platform Backend</description>
 
     <properties>
         <java.version>17</java.version>
