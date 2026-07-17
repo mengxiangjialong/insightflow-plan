@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Pencil, Trash2, Plus, Check, X } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { api } from "@/lib/api";
-import type { Phase, Plan } from "@/lib/mock-data";
+import type { Phase, PhaseTask, Plan } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/plans/$planId")({
   loader: ({ params, context }) =>
@@ -22,7 +22,17 @@ export const Route = createFileRoute("/plans/$planId")({
 
 function PlanDetailPage() {
   const { planId } = Route.useParams();
-  const plan = Route.useLoaderData() as Plan;
+  const initialPlan = Route.useLoaderData() as Plan;
+  const [plan, setPlan] = useState<Plan>(initialPlan);
+
+  const updatePhase = (phaseId: string, updater: (tasks: PhaseTask[]) => PhaseTask[]) => {
+    setPlan((prev) => ({
+      ...prev,
+      phases: prev.phases.map((ph) =>
+        ph.id === phaseId ? { ...ph, tasks: updater(ph.tasks) } : ph,
+      ),
+    }));
+  };
 
   return (
     <AppShell title={plan.title} breadcrumb={`PLANS / ${planId.toUpperCase()}`}>
@@ -50,7 +60,30 @@ function PlanDetailPage() {
           <h3 className="mb-6 text-lg font-bold">阶段与任务</h3>
           <div className="space-y-4">
             {plan.phases.map((ph, i) => (
-              <PhaseCard key={ph.id} phase={ph} defaultOpen={i === 0} />
+              <PhaseCard
+                key={ph.id}
+                phase={ph}
+                defaultOpen={i === 0}
+                onAdd={(title) =>
+                  updatePhase(ph.id, (tasks) => [
+                    ...tasks,
+                    { id: `${ph.id}-t${Date.now()}`, title, done: false },
+                  ])
+                }
+                onUpdate={(taskId, title) =>
+                  updatePhase(ph.id, (tasks) =>
+                    tasks.map((t) => (t.id === taskId ? { ...t, title } : t)),
+                  )
+                }
+                onDelete={(taskId) =>
+                  updatePhase(ph.id, (tasks) => tasks.filter((t) => t.id !== taskId))
+                }
+                onToggle={(taskId) =>
+                  updatePhase(ph.id, (tasks) =>
+                    tasks.map((t) => (t.id === taskId ? { ...t, done: !t.done } : t)),
+                  )
+                }
+              />
             ))}
           </div>
         </section>
@@ -68,8 +101,26 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function PhaseCard({ phase, defaultOpen }: { phase: Phase; defaultOpen: boolean }) {
+function PhaseCard({
+  phase,
+  defaultOpen,
+  onAdd,
+  onUpdate,
+  onDelete,
+  onToggle,
+}: {
+  phase: Phase;
+  defaultOpen: boolean;
+  onAdd: (title: string) => void;
+  onUpdate: (taskId: string, title: string) => void;
+  onDelete: (taskId: string) => void;
+  onToggle: (taskId: string) => void;
+}) {
   const [open, setOpen] = useState(defaultOpen);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
   const locked = phase.status === "locked";
   return (
     <div className={"overflow-hidden rounded-2xl border border-border-subtle bg-card " + (locked ? "opacity-60" : "")}>
@@ -107,19 +158,136 @@ function PhaseCard({ phase, defaultOpen }: { phase: Phase; defaultOpen: boolean 
         </div>
       </button>
       {open && !locked && (
-        <ul className="space-y-2 border-t border-border-subtle bg-surface/40 px-6 py-5">
-          {phase.tasks.map((t) => (
-            <li key={t.id} className="flex items-center gap-3 text-sm">
-              <span
-                className={
-                  "size-4 shrink-0 rounded border-2 " +
-                  (t.done ? "border-ink bg-ink" : "border-border-subtle")
-                }
+        <div className="border-t border-border-subtle bg-surface/40 px-6 py-5">
+          <ul className="space-y-2">
+            {phase.tasks.map((t) => {
+              const isEditing = editingId === t.id;
+              return (
+                <li key={t.id} className="group flex items-center gap-3 text-sm">
+                  <button
+                    onClick={() => onToggle(t.id)}
+                    aria-label="切换完成"
+                    className={
+                      "size-4 shrink-0 rounded border-2 " +
+                      (t.done ? "border-ink bg-ink" : "border-border-subtle hover:border-primary")
+                    }
+                  />
+                  {isEditing ? (
+                    <input
+                      autoFocus
+                      value={draft}
+                      onChange={(e) => setDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          onUpdate(t.id, draft.trim() || t.title);
+                          setEditingId(null);
+                        } else if (e.key === "Escape") {
+                          setEditingId(null);
+                        }
+                      }}
+                      className="flex-1 rounded-lg border border-border-subtle bg-background px-2 py-1 text-sm outline-none focus:border-primary"
+                    />
+                  ) : (
+                    <span className={"flex-1 " + (t.done ? "text-secondary line-through" : "")}>
+                      {t.title}
+                    </span>
+                  )}
+                  <div className="flex shrink-0 items-center gap-1">
+                    {isEditing ? (
+                      <>
+                        <button
+                          onClick={() => {
+                            onUpdate(t.id, draft.trim() || t.title);
+                            setEditingId(null);
+                          }}
+                          className="grid size-7 place-items-center rounded text-primary hover:bg-surface-container"
+                          aria-label="保存"
+                        >
+                          <Check className="size-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setEditingId(null)}
+                          className="grid size-7 place-items-center rounded text-secondary hover:bg-surface-container"
+                          aria-label="取消"
+                        >
+                          <X className="size-3.5" />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => {
+                            setEditingId(t.id);
+                            setDraft(t.title);
+                          }}
+                          className="grid size-7 place-items-center rounded text-secondary opacity-0 transition-opacity hover:bg-surface-container hover:text-ink group-hover:opacity-100"
+                          aria-label="编辑"
+                        >
+                          <Pencil className="size-3.5" />
+                        </button>
+                        <button
+                          onClick={() => onDelete(t.id)}
+                          className="grid size-7 place-items-center rounded text-secondary opacity-0 transition-opacity hover:bg-surface-container hover:text-red-500 group-hover:opacity-100"
+                          aria-label="删除"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          {adding ? (
+            <div className="mt-3 flex items-center gap-2">
+              <input
+                autoFocus
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newTitle.trim()) {
+                    onAdd(newTitle.trim());
+                    setNewTitle("");
+                    setAdding(false);
+                  } else if (e.key === "Escape") {
+                    setAdding(false);
+                    setNewTitle("");
+                  }
+                }}
+                placeholder="新任务标题…"
+                className="flex-1 rounded-lg border border-border-subtle bg-background px-3 py-2 text-sm outline-none focus:border-primary"
               />
-              <span className={t.done ? "text-secondary line-through" : ""}>{t.title}</span>
-            </li>
-          ))}
-        </ul>
+              <button
+                onClick={() => {
+                  if (!newTitle.trim()) return;
+                  onAdd(newTitle.trim());
+                  setNewTitle("");
+                  setAdding(false);
+                }}
+                className="rounded-lg bg-ink px-3 py-2 text-sm font-medium text-background hover:opacity-90"
+              >
+                添加
+              </button>
+              <button
+                onClick={() => {
+                  setAdding(false);
+                  setNewTitle("");
+                }}
+                className="rounded-lg px-3 py-2 text-sm text-secondary hover:bg-surface-container"
+              >
+                取消
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setAdding(true)}
+              className="mt-3 flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+            >
+              <Plus className="size-4" /> 添加任务
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
