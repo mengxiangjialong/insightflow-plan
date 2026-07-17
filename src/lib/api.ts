@@ -1,7 +1,7 @@
 /**
  * 前后端分离 API 客户端。
  *
- * 前端通过 HTTP 调用独立部署的 Java + Spring Boot 后端（见项目根目录 `backend/`）。
+ * 前端通过 HTTP 调用独立部署的 Java + Spring Boot 后端（见项目根目录 `task-backend/`）。
  * 通过环境变量 `VITE_API_BASE_URL` 指定后端地址，例如：
  *   VITE_API_BASE_URL=http://localhost:8080
  *

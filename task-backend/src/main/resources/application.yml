@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: inkplan-backend
+    name: task-backend
   datasource:
     url: jdbc:mysql://localhost:3306/inkplan?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
     username: ${DB_USER:root}
