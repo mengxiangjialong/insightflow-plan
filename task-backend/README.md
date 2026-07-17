@@ -14,7 +14,7 @@
 ## 目录结构
 
 ```
-backend/
+task-backend/
 ├── pom.xml
 ├── src/main/java/com/inkplan/
 │   ├── InkPlanApplication.java
