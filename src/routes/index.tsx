@@ -1,18 +1,60 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowRight, Flame, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Flame, CheckCircle2, Pencil, Trash2, Plus, Check, X } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
-import { todayTasks as initialTasks, currentPlan, stats } from "@/lib/mock-data";
+import { todayTasks as initialTasks, currentPlan, stats, type Task, type TaskCategory } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/")({
   component: Dashboard,
 });
 
 function Dashboard() {
-  const [tasks, setTasks] = useState(initialTasks);
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draftTitle, setDraftTitle] = useState("");
+  const [draftDetail, setDraftDetail] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newDetail, setNewDetail] = useState("");
+  const [newCategory, setNewCategory] = useState<TaskCategory>("READING");
+  const [newMinutes, setNewMinutes] = useState(30);
   const doneCount = tasks.filter((t) => t.done).length;
   const toggle = (id: string) =>
     setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
+  const remove = (id: string) => setTasks((prev) => prev.filter((t) => t.id !== id));
+  const startEdit = (t: Task) => {
+    setEditingId(t.id);
+    setDraftTitle(t.title);
+    setDraftDetail(t.detail);
+  };
+  const saveEdit = () => {
+    if (!editingId) return;
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === editingId ? { ...t, title: draftTitle.trim() || t.title, detail: draftDetail } : t,
+      ),
+    );
+    setEditingId(null);
+  };
+  const addTask = () => {
+    if (!newTitle.trim()) return;
+    setTasks((prev) => [
+      ...prev,
+      {
+        id: `t${Date.now()}`,
+        title: newTitle.trim(),
+        detail: newDetail.trim() || `预计 ${newMinutes} 分钟`,
+        minutes: newMinutes,
+        category: newCategory,
+        done: false,
+      },
+    ]);
+    setNewTitle("");
+    setNewDetail("");
+    setNewMinutes(30);
+    setNewCategory("READING");
+    setAdding(false);
+  };
 
   return (
     <AppShell title="学习仪表盘" breadcrumb="DASHBOARD / ACTIVE_PLAN_01">
@@ -45,45 +87,165 @@ function Dashboard() {
           <section className="animate-ink" style={{ animationDelay: "180ms" }}>
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-lg font-bold">今日任务 · 10月24日</h2>
-              <Link
-                to="/plans/$planId"
-                params={{ planId: "p1" }}
-                className="text-sm font-medium text-primary hover:underline"
-              >
-                管理计划
-              </Link>
-            </div>
-            <div className="space-y-3">
-              {tasks.map((t) => (
+              <div className="flex items-center gap-4">
                 <button
-                  key={t.id}
-                  onClick={() => toggle(t.id)}
-                  className={
-                    "group flex w-full items-center gap-4 rounded-2xl border border-border-subtle p-4 text-left transition-all md:p-5 " +
-                    (t.done ? "bg-surface/40 opacity-60" : "bg-card hover:shadow-sm")
-                  }
+                  onClick={() => setAdding((v) => !v)}
+                  className="flex items-center gap-1 text-sm font-medium text-primary hover:underline"
                 >
-                  <span
+                  <Plus className="size-4" /> 新建任务
+                </button>
+                <Link
+                  to="/plans/$planId"
+                  params={{ planId: "p1" }}
+                  className="text-sm font-medium text-primary hover:underline"
+                >
+                  管理计划
+                </Link>
+              </div>
+            </div>
+            {adding && (
+              <div className="mb-4 space-y-3 rounded-2xl border-2 border-dashed border-primary/40 bg-card p-4 md:p-5">
+                <input
+                  autoFocus
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  placeholder="任务标题"
+                  className="w-full rounded-lg border border-border-subtle bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                />
+                <input
+                  value={newDetail}
+                  onChange={(e) => setNewDetail(e.target.value)}
+                  placeholder="任务描述（可选）"
+                  className="w-full rounded-lg border border-border-subtle bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                />
+                <div className="flex flex-wrap items-center gap-3">
+                  <select
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value as TaskCategory)}
+                    className="rounded-lg border border-border-subtle bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                  >
+                    {(["READING", "LISTENING", "PRACTICE", "REVIEW", "WRITING"] as TaskCategory[]).map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                  <input
+                    type="number"
+                    min={5}
+                    max={240}
+                    value={newMinutes}
+                    onChange={(e) => setNewMinutes(Number(e.target.value) || 30)}
+                    className="w-24 rounded-lg border border-border-subtle bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                  />
+                  <span className="text-xs text-secondary">分钟</span>
+                  <div className="ml-auto flex gap-2">
+                    <button
+                      onClick={() => setAdding(false)}
+                      className="rounded-lg px-3 py-2 text-sm text-secondary hover:bg-surface-container"
+                    >
+                      取消
+                    </button>
+                    <button
+                      onClick={addTask}
+                      className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-background hover:opacity-90"
+                    >
+                      添加
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="space-y-3">
+              {tasks.map((t) => {
+                const isEditing = editingId === t.id;
+                return (
+                  <div
+                    key={t.id}
                     className={
-                      "grid size-6 shrink-0 place-items-center rounded border-2 transition-colors " +
-                      (t.done
-                        ? "border-ink bg-ink text-background"
-                        : "border-border-subtle group-hover:border-primary")
+                      "group flex w-full items-center gap-3 rounded-2xl border border-border-subtle p-4 text-left transition-all md:p-5 " +
+                      (t.done ? "bg-surface/40 opacity-60" : "bg-card hover:shadow-sm")
                     }
                   >
-                    {t.done ? <CheckCircle2 className="size-3.5" strokeWidth={3} /> : null}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <h3 className={"truncate font-medium " + (t.done ? "line-through" : "")}>
-                      {t.title}
-                    </h3>
-                    <p className="truncate text-sm text-secondary">{t.detail}</p>
+                    <button
+                      onClick={() => toggle(t.id)}
+                      aria-label="切换完成状态"
+                      className={
+                        "grid size-6 shrink-0 place-items-center rounded border-2 transition-colors " +
+                        (t.done
+                          ? "border-ink bg-ink text-background"
+                          : "border-border-subtle hover:border-primary")
+                      }
+                    >
+                      {t.done ? <CheckCircle2 className="size-3.5" strokeWidth={3} /> : null}
+                    </button>
+                    {isEditing ? (
+                      <div className="min-w-0 flex-1 space-y-2">
+                        <input
+                          value={draftTitle}
+                          onChange={(e) => setDraftTitle(e.target.value)}
+                          className="w-full rounded-lg border border-border-subtle bg-background px-2 py-1 text-sm font-medium outline-none focus:border-primary"
+                        />
+                        <input
+                          value={draftDetail}
+                          onChange={(e) => setDraftDetail(e.target.value)}
+                          className="w-full rounded-lg border border-border-subtle bg-background px-2 py-1 text-sm outline-none focus:border-primary"
+                        />
+                      </div>
+                    ) : (
+                      <div className="min-w-0 flex-1">
+                        <h3 className={"truncate font-medium " + (t.done ? "line-through" : "")}>
+                          {t.title}
+                        </h3>
+                        <p className="truncate text-sm text-secondary">{t.detail}</p>
+                      </div>
+                    )}
+                    <span className="hidden shrink-0 rounded-full bg-surface-container px-3 py-1 font-mono text-xs sm:inline">
+                      {t.category}
+                    </span>
+                    <div className="flex shrink-0 items-center gap-1">
+                      {isEditing ? (
+                        <>
+                          <button
+                            onClick={saveEdit}
+                            aria-label="保存"
+                            className="grid size-8 place-items-center rounded-lg text-primary hover:bg-surface-container"
+                          >
+                            <Check className="size-4" />
+                          </button>
+                          <button
+                            onClick={() => setEditingId(null)}
+                            aria-label="取消"
+                            className="grid size-8 place-items-center rounded-lg text-secondary hover:bg-surface-container"
+                          >
+                            <X className="size-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => startEdit(t)}
+                            aria-label="编辑"
+                            className="grid size-8 place-items-center rounded-lg text-secondary opacity-0 transition-opacity hover:bg-surface-container hover:text-ink group-hover:opacity-100"
+                          >
+                            <Pencil className="size-4" />
+                          </button>
+                          <button
+                            onClick={() => remove(t.id)}
+                            aria-label="删除"
+                            className="grid size-8 place-items-center rounded-lg text-secondary opacity-0 transition-opacity hover:bg-surface-container hover:text-red-500 group-hover:opacity-100"
+                          >
+                            <Trash2 className="size-4" />
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                  <span className="hidden shrink-0 rounded-full bg-surface-container px-3 py-1 font-mono text-xs sm:inline">
-                    {t.category}
-                  </span>
-                </button>
-              ))}
+                );
+              })}
+              {tasks.length === 0 && (
+                <div className="rounded-2xl border border-dashed border-border-subtle bg-surface/40 p-8 text-center text-sm text-secondary">
+                  暂无任务，点击右上角「新建任务」开始规划今日学习。
+                </div>
+              )}
             </div>
           </section>
 
