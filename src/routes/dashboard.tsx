@@ -1,10 +1,21 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowRight, Flame, CheckCircle2, Pencil, Trash2, Plus, Check, X } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { todayTasks as initialTasks, currentPlan, stats, type Task, type TaskCategory } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/dashboard")({
+  beforeLoad: () => {
+    if (typeof window !== "undefined" && !window.localStorage.getItem("inkplan.auth.user")) {
+      throw redirect({ to: "/login" });
+    }
+  },
+  head: () => ({
+    meta: [
+      { title: "学习仪表盘 · 墨策" },
+      { name: "description", content: "今日学习时长、目标完成率、连续学习天数与今日待办一览。" },
+    ],
+  }),
   component: Dashboard,
 });
 
