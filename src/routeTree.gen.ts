@@ -11,7 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ProfileRouteImport } from './routes/profile'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as PlansNewRouteImport } from './routes/plans.new'
 import { Route as PlansPlanIdRouteImport } from './routes/plans.$planId'
 
@@ -25,9 +25,9 @@ const ProfileRoute = ProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlansNewRoute = PlansNewRouteImport.update({
@@ -42,14 +42,14 @@ const PlansPlanIdRoute = PlansPlanIdRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/plans/$planId': typeof PlansPlanIdRoute
   '/plans/new': typeof PlansNewRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/plans/$planId': typeof PlansPlanIdRoute
@@ -57,7 +57,7 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/plans/$planId': typeof PlansPlanIdRoute
@@ -65,12 +65,22 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/profile' | '/sitemap.xml' | '/plans/$planId' | '/plans/new'
+  fullPaths:
+    | '/dashboard'
+    | '/profile'
+    | '/sitemap.xml'
+    | '/plans/$planId'
+    | '/plans/new'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/profile' | '/sitemap.xml' | '/plans/$planId' | '/plans/new'
+  to:
+    | '/dashboard'
+    | '/profile'
+    | '/sitemap.xml'
+    | '/plans/$planId'
+    | '/plans/new'
   id:
     | '__root__'
-    | '/'
+    | '/dashboard'
     | '/profile'
     | '/sitemap.xml'
     | '/plans/$planId'
@@ -78,7 +88,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRoute
   ProfileRoute: typeof ProfileRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   PlansPlanIdRoute: typeof PlansPlanIdRoute
@@ -101,11 +111,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/plans/new': {
@@ -126,7 +136,7 @@ declare module '@tanstack/react-router' {
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRoute,
   ProfileRoute: ProfileRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   PlansPlanIdRoute: PlansPlanIdRoute,

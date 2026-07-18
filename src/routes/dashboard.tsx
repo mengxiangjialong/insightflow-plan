@@ -4,7 +4,7 @@ import { ArrowRight, Flame, CheckCircle2, Pencil, Trash2, Plus, Check, X } from 
 import { AppShell } from "@/components/app-shell";
 import { todayTasks as initialTasks, currentPlan, stats, type Task, type TaskCategory } from "@/lib/mock-data";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
 });
 
