@@ -31,9 +31,16 @@ export function AppShell({
   const { theme, toggle } = useTheme();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const navItems = user?.role === "admin"
-    ? [...baseNav, { to: "/admin", label: "管理后台", icon: Shield, match: (p: string) => p.startsWith("/admin") } as (typeof baseNav)[number]]
-    : baseNav;
+  type NavItem = {
+    to: string;
+    params?: Record<string, string>;
+    label: string;
+    icon: typeof Shield;
+    match: (p: string) => boolean;
+  };
+  const navItems: NavItem[] = user?.role === "admin"
+    ? [...(baseNav as unknown as NavItem[]), { to: "/admin", label: "管理后台", icon: Shield, match: (p: string) => p.startsWith("/admin") }]
+    : (baseNav as unknown as NavItem[]);
   const doLogout = () => { logout(); navigate({ to: "/" }); };
 
   return (
