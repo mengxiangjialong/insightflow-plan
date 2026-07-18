@@ -96,3 +96,64 @@ export const stats = {
 };
 
 export const user = { name: "张志远", email: "zhiyuan@example.com", role: "Pro Learner" };
+
+/** GitHub-style contribution heatmap: 最近 20 周 × 7 天 */
+function seed(n: number) {
+  let s = n;
+  return () => {
+    s = (s * 9301 + 49297) % 233280;
+    return s / 233280;
+  };
+}
+const rand = seed(42);
+export const heatmap: { date: string; minutes: number }[] = (() => {
+  const arr: { date: string; minutes: number }[] = [];
+  const today = new Date();
+  for (let i = 20 * 7 - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const r = rand();
+    const minutes = r < 0.3 ? 0 : Math.floor(r * 180);
+    arr.push({ date: d.toISOString().slice(0, 10), minutes });
+  }
+  return arr;
+})();
+
+/** 成长曲线：最近 12 周累计专注小时 */
+export const growthCurve: { week: string; hours: number }[] = Array.from({ length: 12 }, (_, i) => ({
+  week: `W${i + 1}`,
+  hours: Math.round((6 + i * 1.4 + rand() * 3) * 10) / 10,
+}));
+
+/** 管理员：用户列表 */
+export const adminUsers = [
+  { id: "u1", name: "张志远", email: "zhiyuan@example.com", role: "user", status: "active", joinedAt: "2024-09-01" },
+  { id: "u2", name: "李清照", email: "qingzhao@example.com", role: "user", status: "active", joinedAt: "2024-10-11" },
+  { id: "u3", name: "王阳明", email: "yangming@example.com", role: "admin", status: "active", joinedAt: "2024-06-20" },
+  { id: "u4", name: "苏轼", email: "sushi@example.com", role: "user", status: "banned", joinedAt: "2024-08-03" },
+];
+
+export const announcements = [
+  { id: "a1", title: "平台 v1.2 更新：AI 计划支持自定义节奏", createdAt: "2026-07-10", pinned: true },
+  { id: "a2", title: "每周学习之星评选开始啦", createdAt: "2026-07-04", pinned: false },
+];
+
+export const categories = [
+  { id: "c1", name: "编程开发", count: 128 },
+  { id: "c2", name: "语言学习", count: 96 },
+  { id: "c3", name: "考研考证", count: 74 },
+  { id: "c4", name: "兴趣爱好", count: 43 },
+];
+
+export const aiPrompts = [
+  { id: "p1", name: "计划生成器", model: "gpt-4o", updatedAt: "2026-07-12" },
+  { id: "p2", name: "每日任务拆解", model: "gpt-4o-mini", updatedAt: "2026-07-08" },
+  { id: "p3", name: "复盘助教", model: "gpt-4o", updatedAt: "2026-06-30" },
+];
+
+export const systemLogs = [
+  { id: "l1", level: "INFO", message: "用户 zhiyuan 登录成功", at: "2026-07-18 09:12:44" },
+  { id: "l2", level: "WARN", message: "AI 请求限流触发", at: "2026-07-18 08:41:02" },
+  { id: "l3", level: "INFO", message: "计划 p1 已生成", at: "2026-07-17 22:15:11" },
+  { id: "l4", level: "ERROR", message: "Redis 连接短暂中断（30s）", at: "2026-07-17 20:03:29" },
+];
