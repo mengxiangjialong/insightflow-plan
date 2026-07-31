@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { UserPlus, Loader2 } from "lucide-react";
-import { useAuth } from "@/lib/auth";
+import { EMAIL_RE, useAuth } from "@/lib/auth";
 import { AuthShell, Input } from "./login";
 
 export const Route = createFileRoute("/register")({
@@ -26,6 +26,10 @@ function RegisterPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr(null);
+    if (!EMAIL_RE.test(email.trim())) {
+      setErr("请输入有效的邮箱地址");
+      return;
+    }
     if (password.length < 6) {
       setErr("密码至少 6 位");
       return;

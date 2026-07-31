@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { LogIn, Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { EMAIL_RE } from "@/lib/auth";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -24,6 +25,10 @@ function LoginPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr(null);
+    if (!EMAIL_RE.test(email.trim())) {
+      setErr("请输入有效的邮箱地址");
+      return;
+    }
     setLoading(true);
     try {
       const u = await login(email, password);
@@ -53,7 +58,7 @@ function LoginPage() {
           还没有账号？<Link to="/register" className="text-primary hover:underline">立即注册</Link>
         </p>
         <p className="text-center font-mono text-xs text-secondary">
-          提示：邮箱以 admin 开头登录为管理员
+          管理员账号：admin@163.com / admin
         </p>
       </form>
     </AuthShell>
