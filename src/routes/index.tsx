@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Sparkles, PlayCircle, Flame, Target, LineChart } from "lucide-react";
+import { useState } from "react";
 import { useTheme } from "@/lib/theme";
 import { useAuth } from "@/lib/auth";
 import { Moon, Sun } from "lucide-react";
+import { AuthModal, type AuthMode } from "@/components/auth-modal";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -17,6 +19,7 @@ export const Route = createFileRoute("/")({
 function Landing() {
   const { theme, toggle } = useTheme();
   const { user } = useAuth();
+  const [authMode, setAuthMode] = useState<AuthMode | null>(null);
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
@@ -38,10 +41,15 @@ function Landing() {
             </Link>
           ) : (
             <>
-              <Link to="/login" className="text-sm text-secondary hover:text-ink">登录</Link>
-              <Link to="/register" className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-background">
+              <button onClick={() => setAuthMode("login")} className="text-sm text-secondary hover:text-ink">
+                登录
+              </button>
+              <button
+                onClick={() => setAuthMode("register")}
+                className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-background"
+              >
                 注册
-              </Link>
+              </button>
             </>
           )}
         </div>
@@ -61,14 +69,25 @@ function Landing() {
             让 AI 为你量身定制学习路径，每日任务清晰可执行，进度成长看得见。
           </p>
           <div className="animate-ink mt-10 flex flex-wrap items-center justify-center gap-4" style={{ animationDelay: "200ms" }}>
-            <Link
-              to={user ? "/dashboard" : "/register"}
-              className="group flex items-center gap-2 rounded-full bg-ink px-6 py-3 font-medium text-background transition-all hover:opacity-90"
-            >
-              <PlayCircle className="size-5" />
-              开始学习
-              <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-            </Link>
+            {user ? (
+              <Link
+                to="/dashboard"
+                className="group flex items-center gap-2 rounded-full bg-ink px-6 py-3 font-medium text-background transition-all hover:opacity-90"
+              >
+                <PlayCircle className="size-5" />
+                开始学习
+                <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+            ) : (
+              <button
+                onClick={() => setAuthMode("register")}
+                className="group flex items-center gap-2 rounded-full bg-ink px-6 py-3 font-medium text-background transition-all hover:opacity-90"
+              >
+                <PlayCircle className="size-5" />
+                开始学习
+                <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+              </button>
+            )}
             <Link
               to="/plans/new"
               className="flex items-center gap-2 rounded-full border-2 border-ink px-6 py-3 font-medium text-ink hover:bg-surface"
@@ -90,6 +109,10 @@ function Landing() {
         <Flame className="mx-auto mb-2 size-4 text-primary" />
         MOCE · KEEP LEARNING · {new Date().getFullYear()}
       </footer>
+
+      {authMode && (
+        <AuthModal mode={authMode} onClose={() => setAuthMode(null)} onModeChange={setAuthMode} />
+      )}
     </div>
   );
 }
