@@ -59,8 +59,10 @@ export function AppShell({
                 to={item.to}
                 {...("params" in item ? { params: item.params } : {})}
                 className={
-                  "grid size-11 place-items-center rounded-xl transition-colors " +
-                  (active ? "bg-surface-container text-primary" : "text-secondary hover:bg-surface")
+                  "relative grid size-11 place-items-center rounded-xl transition-colors " +
+                  (active
+                    ? "bg-surface-container text-primary before:absolute before:-left-3 before:h-6 before:w-1 before:rounded-r-full before:bg-primary"
+                    : "text-secondary hover:bg-surface hover:text-ink")
                 }
                 aria-label={item.label}
                 title={item.label}
@@ -93,7 +95,7 @@ export function AppShell({
       </nav>
 
       <main className="md:pl-20">
-        <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-4 border-b border-border-subtle bg-background/80 px-4 backdrop-blur-md md:h-20 md:px-10">
+        <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-4 border-b border-border-subtle bg-background/70 px-4 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 md:h-20 md:px-10">
           <div className="min-w-0">
             <h1 className="truncate text-lg font-bold tracking-tight md:text-xl">{title}</h1>
             {breadcrumb ? (
@@ -120,22 +122,22 @@ export function AppShell({
         <div className="pb-24 md:pb-10">{children}</div>
       </main>
 
-      <div className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t border-border-subtle bg-background px-6 md:hidden">
+      <div className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t border-border-subtle bg-background/85 px-6 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">
         {navItems.slice(0, 2).map((item) => {
           const Icon = item.icon;
           return (
-            <Link key={item.to} to={item.to} {...("params" in item ? { params: item.params } : {})} className="grid size-11 place-items-center rounded-xl text-secondary" aria-label={item.label}>
+            <Link key={item.to} to={item.to} {...("params" in item ? { params: item.params } : {})} className={"grid size-11 place-items-center rounded-xl " + (item.match(pathname) ? "bg-surface-container text-primary" : "text-secondary")} aria-label={item.label}>
               <Icon className="size-5" strokeWidth={1.8} />
             </Link>
           );
         })}
-        <Link to="/plans/new" className="-translate-y-4 grid size-14 place-items-center rounded-full bg-ink text-background shadow-lg" aria-label="新建计划">
+        <Link to="/plans/new" className="-translate-y-4 grid size-14 place-items-center rounded-full bg-ink text-background shadow-xl transition-transform active:scale-95" aria-label="新建计划">
           <Plus className="size-6" />
         </Link>
         {navItems.slice(2, 5).map((item) => {
           const Icon = item.icon;
           return (
-            <Link key={item.to} to={item.to} {...("params" in item ? { params: item.params } : {})} className="grid size-11 place-items-center rounded-xl text-secondary" aria-label={item.label}>
+            <Link key={item.to} to={item.to} {...("params" in item ? { params: item.params } : {})} className={"grid size-11 place-items-center rounded-xl " + (item.match(pathname) ? "bg-surface-container text-primary" : "text-secondary")} aria-label={item.label}>
               <Icon className="size-5" strokeWidth={1.8} />
             </Link>
           );

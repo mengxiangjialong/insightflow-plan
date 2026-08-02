@@ -2,7 +2,8 @@ import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowRight, Flame, CheckCircle2, Pencil, Trash2, Plus, Check, X } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
-import { todayTasks as initialTasks, currentPlan, stats, type Task, type TaskCategory } from "@/lib/mock-data";
+import type { Task, TaskCategory } from "@/lib/mock-data";
+import { useUserActivity, useUserPlans, useUserTasks } from "@/lib/user-data";
 
 export const Route = createFileRoute("/dashboard")({
   beforeLoad: () => {
@@ -20,7 +21,11 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function Dashboard() {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [storedTasks, setTasks] = useUserTasks();
+  const activity = useUserActivity();
+  const [plans] = useUserPlans();
+  const activePlan = plans?.[0] ?? null;
+  const tasks = storedTasks ?? [];
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftTitle, setDraftTitle] = useState("");
   const [draftDetail, setDraftDetail] = useState("");
@@ -74,12 +79,12 @@ function Dashboard() {
           <section className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
             <StatCard label="连续学习" mono="DAYS" delay={0}>
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-bold tracking-tighter">{stats.streakDays}</span>
+                <span className="text-4xl font-bold tracking-tighter">{activity?.streakDays ?? 0}</span>
                 <Flame className="size-5 text-primary" />
               </div>
             </StatCard>
-            <StatCard label="周进度" mono={`${Math.round(stats.weekProgress * 100)}%`} delay={60}>
-              <RingProgress value={stats.weekProgress} />
+            <StatCard label="周进度" mono={`${Math.round((activity?.weekProgress ?? 0) * 100)}%`} delay={60}>
+              <RingProgress value={activity?.weekProgress ?? 0} />
             </StatCard>
             <div
               className="animate-ink flex flex-col justify-between rounded-3xl bg-ink p-6 text-background shadow-xl"
@@ -107,7 +112,7 @@ function Dashboard() {
                 </button>
                 <Link
                   to="/plans/$planId"
-                  params={{ planId: "p1" }}
+                  params={{ planId: activePlan?.id ?? "p1" }}
                   className="text-sm font-medium text-primary hover:underline"
                 >
                   管理计划
@@ -261,9 +266,9 @@ function Dashboard() {
           </section>
 
           <section className="animate-ink" style={{ animationDelay: "240ms" }}>
-            <h2 className="mb-6 text-lg font-bold">计划阶段：{currentPlan.title}</h2>
+            <h2 className="mb-6 text-lg font-bold">计划阶段：{activePlan?.title ?? "暂无计划"}</h2>
             <div className="ml-3 space-y-8 border-l-2 border-border-subtle pl-8">
-              {currentPlan.phases.map((ph) => (
+              {(activePlan?.phases ?? []).map((ph) => (
                 <div key={ph.id} className={"relative " + (ph.status === "locked" ? "opacity-50" : "")}>
                   <div
                     className={
