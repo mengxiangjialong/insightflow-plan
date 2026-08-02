@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ArrowRight, Flame, CheckCircle2, Pencil, Trash2, Plus, Check, X } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import type { Task, TaskCategory } from "@/lib/mock-data";
-import { useUserActivity, useUserTasks } from "@/lib/user-data";
+import { useUserActivity, useUserPlans, useUserTasks } from "@/lib/user-data";
 
 export const Route = createFileRoute("/dashboard")({
   beforeLoad: () => {
@@ -23,6 +23,8 @@ export const Route = createFileRoute("/dashboard")({
 function Dashboard() {
   const [storedTasks, setTasks] = useUserTasks();
   const activity = useUserActivity();
+  const [plans] = useUserPlans();
+  const activePlan = plans?.[0] ?? null;
   const tasks = storedTasks ?? [];
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftTitle, setDraftTitle] = useState("");
@@ -110,7 +112,7 @@ function Dashboard() {
                 </button>
                 <Link
                   to="/plans/$planId"
-                  params={{ planId: "p1" }}
+                  params={{ planId: activePlan?.id ?? "p1" }}
                   className="text-sm font-medium text-primary hover:underline"
                 >
                   管理计划
@@ -264,9 +266,9 @@ function Dashboard() {
           </section>
 
           <section className="animate-ink" style={{ animationDelay: "240ms" }}>
-            <h2 className="mb-6 text-lg font-bold">计划阶段：{currentPlan.title}</h2>
+            <h2 className="mb-6 text-lg font-bold">计划阶段：{activePlan?.title ?? "暂无计划"}</h2>
             <div className="ml-3 space-y-8 border-l-2 border-border-subtle pl-8">
-              {currentPlan.phases.map((ph) => (
+              {(activePlan?.phases ?? []).map((ph) => (
                 <div key={ph.id} className={"relative " + (ph.status === "locked" ? "opacity-50" : "")}>
                   <div
                     className={
