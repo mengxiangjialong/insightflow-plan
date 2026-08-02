@@ -90,7 +90,7 @@ function seedTasks(): Task[] {
   return todayTasks.map((t) => ({ ...t, done: false }));
 }
 
-function seedPlans(userId: string): Plan[] {
+function seedPlans(): Plan[] {
   return [
     {
       ...currentPlan,
@@ -103,7 +103,6 @@ function seedPlans(userId: string): Plan[] {
         status: i === 0 ? "active" : "locked",
         tasks: ph.tasks.map((t) => ({ ...t, done: false })),
       })),
-      title: userId.startsWith("admin") ? currentPlan.title : currentPlan.title,
     },
   ];
 }
