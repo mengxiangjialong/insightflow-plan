@@ -80,7 +80,7 @@ public class PlanController {
         List<Dtos.PhaseTaskDto> tasks = phaseTasks.findByPhaseId(ph.getId()).stream()
                 .map(t -> new Dtos.PhaseTaskDto(t.getId(), t.getTitle(), Boolean.TRUE.equals(t.getDone())))
                 .toList();
-        return new Dtos.PhaseDto(ph.getId(), ph.getIndex(), ph.getTitle(), ph.getSummary(),
+        return new Dtos.PhaseDto(ph.getId(), ph.getIndex() == null ? 0 : ph.getIndex(), ph.getTitle(), ph.getSummary(),
                 ph.getProgress() == null ? 0.0 : ph.getProgress(), ph.getStatus(), tasks);
     }
 }
