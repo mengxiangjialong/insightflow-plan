@@ -1,16 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { ChevronDown, Pencil, Trash2, Plus, Check, X } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
-import { api } from "@/lib/api";
 import type { Phase, PhaseTask, Plan } from "@/lib/mock-data";
+import { useUserPlans } from "@/lib/user-data";
 
 export const Route = createFileRoute("/plans/$planId")({
-  loader: ({ params, context }) =>
-    context.queryClient.ensureQueryData({
-      queryKey: ["plan", params.planId],
-      queryFn: () => api.getPlan(params.planId),
-    }),
+  beforeLoad: () => {
+    if (typeof window !== "undefined" && !window.localStorage.getItem("inkplan.auth.user")) {
+      throw redirect({ to: "/login" });
+    }
+  },
   head: ({ params }) => ({
     meta: [
       { title: `学习计划 · 墨策` },
@@ -22,17 +22,40 @@ export const Route = createFileRoute("/plans/$planId")({
 
 function PlanDetailPage() {
   const { planId } = Route.useParams();
-  const initialPlan = Route.useLoaderData() as Plan;
-  const [plan, setPlan] = useState<Plan>(initialPlan);
+  const [plans, setPlans] = useUserPlans();
+  const plan: Plan | undefined = plans?.find((p) => p.id === planId);
 
   const updatePhase = (phaseId: string, updater: (tasks: PhaseTask[]) => PhaseTask[]) => {
-    setPlan((prev) => ({
-      ...prev,
-      phases: prev.phases.map((ph) =>
-        ph.id === phaseId ? { ...ph, tasks: updater(ph.tasks) } : ph,
+    setPlans((prev) =>
+      prev.map((p) =>
+        p.id !== planId
+          ? p
+          : {
+              ...p,
+              phases: p.phases.map((ph) =>
+                ph.id === phaseId ? { ...ph, tasks: updater(ph.tasks) } : ph,
+              ),
+            },
       ),
-    }));
+    );
   };
+
+  if (!plan) {
+    return (
+      <AppShell title="学习计划" breadcrumb={`PLANS / ${planId.toUpperCase()}`}>
+        <div className="mx-auto max-w-3xl px-4 py-16 text-center md:py-24">
+          <h2 className="text-2xl font-bold">没有找到这份计划</h2>
+          <p className="mt-3 text-secondary">计划仅对创建它的账号可见。你可以让 AI 生成一份属于自己的学习路径。</p>
+          <Link
+            to="/plans/new"
+            className="mt-8 inline-flex rounded-full bg-ink px-6 py-3 font-medium text-background hover:opacity-90"
+          >
+            AI 生成计划
+          </Link>
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell title={plan.title} breadcrumb={`PLANS / ${planId.toUpperCase()}`}>

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ArrowRight, Loader2, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { api } from "@/lib/api";
+import { useUserPlans } from "@/lib/user-data";
 
 export const Route = createFileRoute("/plans/new")({
   head: () => ({
@@ -24,6 +25,7 @@ const levels = [
 
 function NewPlanPage() {
   const navigate = useNavigate();
+  const [, setPlans] = useUserPlans();
   const [goal, setGoal] = useState("");
   const [dailyMinutes, setDailyMinutes] = useState(60);
   const [weeks, setWeeks] = useState(4);
@@ -34,7 +36,9 @@ function NewPlanPage() {
     e.preventDefault();
     if (!goal.trim()) return;
     setLoading(true);
-    const plan = await api.generatePlan({ goal, dailyMinutes, weeks, level });
+    const generated = await api.generatePlan({ goal, dailyMinutes, weeks, level });
+    const plan = { ...generated, id: `p-${Date.now()}` };
+    setPlans((prev) => [plan, ...prev]);
     navigate({ to: "/plans/$planId", params: { planId: plan.id } });
   };
 
