@@ -2,7 +2,8 @@ import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowRight, Flame, CheckCircle2, Pencil, Trash2, Plus, Check, X } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
-import { todayTasks as initialTasks, currentPlan, stats, type Task, type TaskCategory } from "@/lib/mock-data";
+import type { Task, TaskCategory } from "@/lib/mock-data";
+import { useUserActivity, useUserTasks } from "@/lib/user-data";
 
 export const Route = createFileRoute("/dashboard")({
   beforeLoad: () => {
@@ -20,7 +21,9 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function Dashboard() {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [storedTasks, setTasks] = useUserTasks();
+  const activity = useUserActivity();
+  const tasks = storedTasks ?? [];
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftTitle, setDraftTitle] = useState("");
   const [draftDetail, setDraftDetail] = useState("");
@@ -74,12 +77,12 @@ function Dashboard() {
           <section className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
             <StatCard label="连续学习" mono="DAYS" delay={0}>
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-bold tracking-tighter">{stats.streakDays}</span>
+                <span className="text-4xl font-bold tracking-tighter">{activity?.streakDays ?? 0}</span>
                 <Flame className="size-5 text-primary" />
               </div>
             </StatCard>
-            <StatCard label="周进度" mono={`${Math.round(stats.weekProgress * 100)}%`} delay={60}>
-              <RingProgress value={stats.weekProgress} />
+            <StatCard label="周进度" mono={`${Math.round((activity?.weekProgress ?? 0) * 100)}%`} delay={60}>
+              <RingProgress value={activity?.weekProgress ?? 0} />
             </StatCard>
             <div
               className="animate-ink flex flex-col justify-between rounded-3xl bg-ink p-6 text-background shadow-xl"

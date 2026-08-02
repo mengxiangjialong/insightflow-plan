@@ -2,7 +2,7 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { LogOut, Save, Pencil } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
-import { stats, currentPlan } from "@/lib/mock-data";
+import { useUserActivity, useUserPlans } from "@/lib/user-data";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/profile")({
@@ -22,6 +22,9 @@ export const Route = createFileRoute("/profile")({
 
 function ProfilePage() {
   const { user, update, logout } = useAuth();
+  const activity = useUserActivity();
+  const [plans] = useUserPlans();
+  const myPlans = plans ?? [];
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user?.name ?? "");
@@ -76,27 +79,37 @@ function ProfilePage() {
         </section>
 
         <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <MetricCard label="连续学习" value={`${stats.streakDays} 天`} />
-          <MetricCard label="本周进度" value={`${Math.round(stats.weekProgress * 100)}%`} />
-          <MetricCard label="累计专注" value={`${stats.focusHours}h`} />
-          <MetricCard label="进行中计划" value="1" />
+          <MetricCard label="连续学习" value={`${activity?.streakDays ?? 0} 天`} />
+          <MetricCard label="本周进度" value={`${Math.round((activity?.weekProgress ?? 0) * 100)}%`} />
+          <MetricCard label="累计专注" value={`${activity?.focusHours ?? 0}h`} />
+          <MetricCard label="进行中计划" value={`${myPlans.length}`} />
         </section>
 
         <section>
           <h3 className="mb-4 text-lg font-bold">我的计划</h3>
-          <div className="rounded-2xl border border-border-subtle bg-card p-6">
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <h4 className="truncate font-bold">{currentPlan.title}</h4>
-                <p className="mt-1 text-sm text-secondary">{currentPlan.goal}</p>
+          <div className="space-y-3">
+            {myPlans.length === 0 && (
+              <p className="rounded-2xl border border-dashed border-border-subtle p-6 text-sm text-secondary">
+                还没有计划，去「AI 生成」创建你的第一份学习路径。
+              </p>
+            )}
+            {myPlans.map((plan) => (
+              <div key={plan.id} className="rounded-2xl border border-border-subtle bg-card p-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <h4 className="truncate font-bold">{plan.title}</h4>
+                    <p className="mt-1 text-sm text-secondary">{plan.goal}</p>
+                  </div>
+                  <span className="shrink-0 font-mono text-xs text-primary">进行中</span>
+                </div>
+                <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-surface-container">
+                  <div className="h-full bg-primary" style={{ width: `${plan.progress * 100}%` }} />
+                </div>
               </div>
-              <span className="shrink-0 font-mono text-xs text-primary">进行中</span>
-            </div>
-            <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-surface-container">
-              <div className="h-full bg-primary" style={{ width: `${currentPlan.progress * 100}%` }} />
-            </div>
+            ))}
           </div>
         </section>
+
       </div>
     </AppShell>
   );

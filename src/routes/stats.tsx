@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell";
-import { growthCurve, stats, heatmap } from "@/lib/mock-data";
+import { useUserActivity } from "@/lib/user-data";
 
 export const Route = createFileRoute("/stats")({
   beforeLoad: () => {
@@ -18,21 +18,24 @@ export const Route = createFileRoute("/stats")({
 });
 
 function StatsPage() {
-  const max = Math.max(...growthCurve.map((p) => p.hours));
+  const activity = useUserActivity();
+  const growthCurve = activity?.growth ?? [];
+  const heatmap = activity?.heatmap ?? [];
+  const max = Math.max(1, ...growthCurve.map((p) => p.hours));
   const totalHours = growthCurve.reduce((s, p) => s + p.hours, 0);
   const width = 640;
   const height = 220;
-  const step = width / (growthCurve.length - 1);
+  const step = width / Math.max(1, growthCurve.length - 1);
   const points = growthCurve.map((p, i) => `${i * step},${height - (p.hours / max) * (height - 20) - 10}`).join(" ");
 
   return (
     <AppShell title="学习统计" breadcrumb="STATS / GROWTH">
       <div className="mx-auto max-w-5xl space-y-8 px-4 py-6 md:px-10 md:py-10">
         <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <Metric label="连续学习" value={`${stats.streakDays} 天`} />
+          <Metric label="连续学习" value={`${activity?.streakDays ?? 0} 天`} />
           <Metric label="累计专注" value={`${totalHours.toFixed(1)}h`} />
           <Metric label="活跃天数" value={`${heatmap.filter((d) => d.minutes > 0).length}`} />
-          <Metric label="周进度" value={`${Math.round(stats.weekProgress * 100)}%`} />
+          <Metric label="周进度" value={`${Math.round((activity?.weekProgress ?? 0) * 100)}%`} />
         </section>
 
         <section className="rounded-3xl border border-border-subtle bg-card p-6 md:p-8">
