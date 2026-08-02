@@ -38,7 +38,7 @@ function StatsPage() {
           <Metric label="周进度" value={`${Math.round((activity?.weekProgress ?? 0) * 100)}%`} />
         </section>
 
-        <section className="rounded-3xl border border-border-subtle bg-card p-6 md:p-8">
+        <section className="card-ink p-6 md:p-8">
           <h3 className="font-bold">成长曲线</h3>
           <p className="mt-1 text-sm text-secondary">最近 12 周累计学习小时</p>
           <div className="mt-6 overflow-x-auto">
@@ -71,7 +71,7 @@ function StatsPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-border-subtle bg-card p-6 md:p-8">
+        <section className="card-ink p-6 md:p-8">
           <h3 className="mb-6 font-bold">周投入分布</h3>
           <div className="space-y-3">
             {growthCurve.map((p) => (
@@ -92,7 +92,7 @@ function StatsPage() {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-border-subtle bg-surface p-5">
+    <div className="metric-ink p-5">
       <p className="font-mono text-xs uppercase text-secondary">{label}</p>
       <p className="mt-2 text-2xl font-bold tracking-tight">{value}</p>
     </div>

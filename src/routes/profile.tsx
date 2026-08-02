@@ -117,7 +117,7 @@ function ProfilePage() {
 
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-border-subtle bg-surface p-5">
+    <div className="metric-ink p-5">
       <p className="font-mono text-xs uppercase text-secondary">{label}</p>
       <p className="mt-2 text-2xl font-bold tracking-tight">{value}</p>
     </div>

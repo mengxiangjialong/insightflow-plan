@@ -54,7 +54,7 @@ function CalendarPage() {
           <Metric label="日均" value={`${heatmap.length ? Math.round(totalMinutes / heatmap.length) : 0} 分钟`} />
         </section>
 
-        <section className="rounded-3xl border border-border-subtle bg-card p-6 md:p-8">
+        <section className="card-ink p-6 md:p-8">
           <div className="flex items-center justify-between gap-4">
             <h3 className="font-bold">最近 {weeks.length} 周</h3>
             <div className="flex items-center gap-1.5 text-xs text-secondary">
@@ -100,7 +100,7 @@ function CalendarPage() {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-border-subtle bg-surface p-5">
+    <div className="metric-ink p-5">
       <p className="font-mono text-xs uppercase text-secondary">{label}</p>
       <p className="mt-2 text-2xl font-bold tracking-tight">{value}</p>
     </div>
