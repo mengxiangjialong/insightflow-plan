@@ -10,5 +10,10 @@ public class User {
     private String password;
     private String name;
     private String role;
+    /** 登录方式：local / github */
+    private String provider;
+    /** 第三方账号唯一 ID（GitHub 用户 id） */
+    private String providerId;
+    private String avatarUrl;
     private LocalDateTime createdAt;
 }
