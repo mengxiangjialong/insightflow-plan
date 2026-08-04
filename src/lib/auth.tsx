@@ -5,12 +5,16 @@ export type AuthUser = {
   name: string;
   email: string;
   role: "user" | "admin";
+  avatarUrl?: string;
+  provider?: "local" | "github";
 };
 
 type Ctx = {
   user: AuthUser | null;
   login: (email: string, password: string) => Promise<AuthUser>;
   register: (name: string, email: string, password: string) => Promise<AuthUser>;
+  /** 第三方（GitHub）登录：用后端返回的 JWT 换取用户信息 */
+  loginWithToken: (token: string) => Promise<AuthUser>;
   logout: () => void;
   update: (patch: Partial<AuthUser>) => void;
 };
@@ -19,6 +23,7 @@ const AuthCtx = createContext<Ctx>({
   user: null,
   login: async () => ({ id: "", name: "", email: "", role: "user" }),
   register: async () => ({ id: "", name: "", email: "", role: "user" }),
+  loginWithToken: async () => ({ id: "", name: "", email: "", role: "user" }),
   logout: () => {},
   update: () => {},
 });
