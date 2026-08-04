@@ -3,6 +3,7 @@ import { useState } from "react";
 import { LogIn, Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { EMAIL_RE } from "@/lib/auth";
+import { GithubLoginButton } from "@/components/github-login-button";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -61,6 +62,9 @@ function LoginPage() {
           管理员账号：admin@163.com / admin
         </p>
       </form>
+      <div className="mt-4">
+        <GithubLoginButton onError={(m) => setErr(m || null)} />
+      </div>
     </AuthShell>
   );
 }

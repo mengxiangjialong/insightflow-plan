@@ -6,6 +6,9 @@ CREATE TABLE IF NOT EXISTS `user` (
   password     VARCHAR(128) NOT NULL,
   name         VARCHAR(64)  NOT NULL,
   role         VARCHAR(32)  NOT NULL DEFAULT 'user',
+  provider     VARCHAR(32)  NOT NULL DEFAULT 'local',
+  provider_id  VARCHAR(64)  NULL,
+  avatar_url   VARCHAR(256) NULL,
   created_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -61,3 +64,6 @@ CREATE TABLE IF NOT EXISTS `checkin` (
   created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uk_user_day (user_id, checkin_day)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- GitHub 账号登录唯一约束（已存在库可单独执行）
+ALTER TABLE `user` ADD UNIQUE KEY uk_provider (provider, provider_id);

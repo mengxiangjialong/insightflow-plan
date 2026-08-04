@@ -20,6 +20,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlansNewRouteImport } from './routes/plans.new'
 import { Route as PlansPlanIdRouteImport } from './routes/plans.$planId'
+import { Route as OauthGithubRouteImport } from './routes/oauth.github'
 
 const StatsRoute = StatsRouteImport.update({
   id: '/stats',
@@ -76,6 +77,11 @@ const PlansPlanIdRoute = PlansPlanIdRouteImport.update({
   path: '/plans/$planId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OauthGithubRoute = OauthGithubRouteImport.update({
+  id: '/oauth/github',
+  path: '/oauth/github',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/stats': typeof StatsRoute
+  '/oauth/github': typeof OauthGithubRoute
   '/plans/$planId': typeof PlansPlanIdRoute
   '/plans/new': typeof PlansNewRoute
 }
@@ -100,6 +107,7 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/stats': typeof StatsRoute
+  '/oauth/github': typeof OauthGithubRoute
   '/plans/$planId': typeof PlansPlanIdRoute
   '/plans/new': typeof PlansNewRoute
 }
@@ -114,6 +122,7 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/stats': typeof StatsRoute
+  '/oauth/github': typeof OauthGithubRoute
   '/plans/$planId': typeof PlansPlanIdRoute
   '/plans/new': typeof PlansNewRoute
 }
@@ -129,6 +138,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/sitemap.xml'
     | '/stats'
+    | '/oauth/github'
     | '/plans/$planId'
     | '/plans/new'
   fileRoutesByTo: FileRoutesByTo
@@ -142,6 +152,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/sitemap.xml'
     | '/stats'
+    | '/oauth/github'
     | '/plans/$planId'
     | '/plans/new'
   id:
@@ -155,6 +166,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/sitemap.xml'
     | '/stats'
+    | '/oauth/github'
     | '/plans/$planId'
     | '/plans/new'
   fileRoutesById: FileRoutesById
@@ -169,6 +181,7 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StatsRoute: typeof StatsRoute
+  OauthGithubRoute: typeof OauthGithubRoute
   PlansPlanIdRoute: typeof PlansPlanIdRoute
   PlansNewRoute: typeof PlansNewRoute
 }
@@ -252,6 +265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlansPlanIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/oauth/github': {
+      id: '/oauth/github'
+      path: '/oauth/github'
+      fullPath: '/oauth/github'
+      preLoaderRoute: typeof OauthGithubRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -265,6 +285,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   StatsRoute: StatsRoute,
+  OauthGithubRoute: OauthGithubRoute,
   PlansPlanIdRoute: PlansPlanIdRoute,
   PlansNewRoute: PlansNewRoute,
 }

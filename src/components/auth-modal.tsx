@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Loader2, LogIn, UserPlus, X } from "lucide-react";
 import { EMAIL_RE, useAuth } from "@/lib/auth";
+import { GithubLoginButton } from "@/components/github-login-button";
 
 export type AuthMode = "login" | "register";
 
@@ -136,6 +137,9 @@ export function AuthModal({
             </p>
           )}
         </form>
+        <div className="mt-4">
+          <GithubLoginButton onError={(m) => setErr(m || null)} />
+        </div>
       </div>
     </div>
   );

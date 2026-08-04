@@ -55,6 +55,8 @@ VITE_API_BASE_URL=http://localhost:8080
 | Method | Path                       | 说明                     |
 | ------ | -------------------------- | ------------------------ |
 | POST   | `/api/auth/login`          | 邮箱密码登录，返回 JWT   |
+| GET    | `/api/auth/github/url`     | 获取 GitHub 授权地址     |
+| GET    | `/api/auth/github/callback`| GitHub 回调，跳回前端带 JWT |
 | GET    | `/api/me`                  | 当前用户信息             |
 | GET    | `/api/plans`               | 我的学习计划列表         |
 | GET    | `/api/plans/{id}`          | 计划详情                 |
@@ -69,3 +71,22 @@ VITE_API_BASE_URL=http://localhost:8080
 - `inkplan:ai:plan:{hash}` — AI 生成计划的结果缓存（TTL 7 天）
 - `inkplan:checkin:{userId}:{yyyyMMdd}` — 打卡去重（SETNX + TTL 到当日结束）
 - `inkplan:hot:plans` — 热门计划榜（ZSET）
+## GitHub 账号登录
+
+1. 在 https://github.com/settings/developers 新建 OAuth App：
+   - Homepage URL：`http://localhost:5173`
+   - Authorization callback URL：`http://localhost:8080/api/auth/github/callback`
+2. 启动后端时注入环境变量：
+
+```bash
+export GITHUB_CLIENT_ID=xxx
+export GITHUB_CLIENT_SECRET=yyy
+export GITHUB_FRONTEND_CALLBACK=http://localhost:5173/oauth/github
+mvn spring-boot:run
+```
+
+3. 流程：前端点「使用 GitHub 账号登录」→ `GET /api/auth/github/url` → 跳转 GitHub 授权 →
+   回调 `/api/auth/github/callback`（Redis 校验 state，换取 access_token，upsert 用户）→
+   302 跳回前端 `/oauth/github?token=<JWT>` → 前端存 token 并调用 `/api/me` 完成登录。
+
+未配置 client-id/secret 时该接口返回 503，前端会提示「GitHub 登录未配置」。
