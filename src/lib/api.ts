@@ -85,6 +85,8 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ email, password }),
     }, async () => ({ token: "mock-token" })),
+  /** 取 GitHub 授权地址（需后端配置 GitHub OAuth App） */
+  githubAuthUrl: () => request<{ url: string }>("/api/auth/github/url", { method: "GET" }),
 };
 
 export const apiMeta = { baseUrl: BASE_URL, useMock: USE_MOCK };
