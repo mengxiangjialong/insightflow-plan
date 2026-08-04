@@ -89,6 +89,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     persist(null);
   }, []);
 
+  const loginWithToken = useCallback(async (token: string) => {
+    if (!token) throw new Error("登录凭证无效");
+    window.localStorage.setItem("inkplan.token", token);
+    const { api } = await import("./api");
+    const me = (await api.me()) as {
+      id: string | number;
+      name?: string;
+      email?: string;
+      role?: string;
+      avatarUrl?: string;
+    };
+    const mail = (me.email ?? "").toLowerCase();
+    const u: AuthUser = {
+      id: String(me.id),
+      name: me.name || mail.split("@")[0] || "学习者",
+      email: mail,
+      role: me.role === "admin" || mail === ADMIN_EMAIL ? "admin" : "user",
+      avatarUrl: me.avatarUrl,
+      provider: "github",
+    };
+    persist(u);
+    return u;
+  }, []);
+
   const update = useCallback(
     (patch: Partial<AuthUser>) => {
       setUser((prev) => {
@@ -102,7 +126,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <AuthCtx.Provider value={{ user, login, register, logout, update }}>{children}</AuthCtx.Provider>
+    <AuthCtx.Provider value={{ user, login, register, loginWithToken, logout, update }}>
+      {children}
+    </AuthCtx.Provider>
   );
 }
 
