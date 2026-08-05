@@ -42,9 +42,7 @@ public class AdminController {
     @GetMapping("/stats")
     public Dtos.AdminStats stats() {
         guard.require();
-        long active = records
-                .findByUserIdAndStudyDateBetweenOrderByStudyDateAsc(-1L, LocalDate.now().minusDays(7), LocalDate.now())
-                .size();
+        long active = records.countActiveUsersSince(LocalDate.now().minusDays(7));
         return new Dtos.AdminStats(users.count(), plans.count(), tasks.count(),
                 checkins.countByCheckinDate(LocalDate.now()), active);
     }
@@ -112,7 +110,7 @@ public class AdminController {
     public List<Dtos.CategoryDto> categories() {
         guard.require();
         return categories.findAll().stream()
-                .map(c -> new Dtos.CategoryDto(c.getId(), c.getName(), c.getCount() == null ? 0 : c.getCount()))
+                .map(c -> new Dtos.CategoryDto(c.getId(), c.getName(), c.getItemCount() == null ? 0 : c.getItemCount()))
                 .toList();
     }
 
@@ -122,7 +120,7 @@ public class AdminController {
         Category c = new Category();
         c.setId(newId());
         c.setName(req.name());
-        c.setCount(0);
+        c.setItemCount(0);
         categories.save(c);
         return new Dtos.CategoryDto(c.getId(), c.getName(), 0);
     }
