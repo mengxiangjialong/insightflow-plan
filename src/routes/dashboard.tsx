@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ArrowRight, Flame, CheckCircle2, Pencil, Trash2, Plus, Check, X } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import type { Task, TaskCategory } from "@/lib/mock-data";
-import { useUserActivity, useUserPlans, useUserTasks } from "@/lib/user-data";
+import { useTodayStats, useTodayTasks, useUserPlans } from "@/lib/user-data";
 
 export const Route = createFileRoute("/dashboard")({
   beforeLoad: () => {
@@ -21,8 +21,8 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function Dashboard() {
-  const [storedTasks, setTasks] = useUserTasks();
-  const activity = useUserActivity();
+  const { tasks: storedTasks, add, update, remove: removeTask, toggle: toggleTask } = useTodayTasks();
+  const { stats, refresh: refreshStats } = useTodayStats();
   const [plans] = useUserPlans();
   const activePlan = plans?.[0] ?? null;
   const tasks = storedTasks ?? [];
@@ -35,9 +35,11 @@ function Dashboard() {
   const [newCategory, setNewCategory] = useState<TaskCategory>("READING");
   const [newMinutes, setNewMinutes] = useState(30);
   const doneCount = tasks.filter((t) => t.done).length;
-  const toggle = (id: string) =>
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
-  const remove = (id: string) => setTasks((prev) => prev.filter((t) => t.id !== id));
+  const toggle = async (id: string) => {
+    await toggleTask(id);
+    void refreshStats();
+  };
+  const remove = (id: string) => void removeTask(id);
   const startEdit = (t: Task) => {
     setEditingId(t.id);
     setDraftTitle(t.title);
@@ -45,26 +47,17 @@ function Dashboard() {
   };
   const saveEdit = () => {
     if (!editingId) return;
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.id === editingId ? { ...t, title: draftTitle.trim() || t.title, detail: draftDetail } : t,
-      ),
-    );
+    void update(editingId, { title: draftTitle.trim() || undefined, detail: draftDetail });
     setEditingId(null);
   };
   const addTask = () => {
     if (!newTitle.trim()) return;
-    setTasks((prev) => [
-      ...prev,
-      {
-        id: `t${Date.now()}`,
-        title: newTitle.trim(),
-        detail: newDetail.trim() || `预计 ${newMinutes} 分钟`,
-        minutes: newMinutes,
-        category: newCategory,
-        done: false,
-      },
-    ]);
+    void add({
+      title: newTitle.trim(),
+      detail: newDetail.trim() || `预计 ${newMinutes} 分钟`,
+      minutes: newMinutes,
+      category: newCategory,
+    });
     setNewTitle("");
     setNewDetail("");
     setNewMinutes(30);
@@ -77,14 +70,21 @@ function Dashboard() {
       <div className="mx-auto grid max-w-7xl grid-cols-12 gap-6 p-4 md:gap-8 md:p-10">
         <div className="col-span-12 space-y-8 lg:col-span-8">
           <section className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
-            <StatCard label="连续学习" mono="DAYS" delay={0}>
+            <StatCard label="今日已学" mono={`/ ${stats?.goalMinutes ?? 90} MIN`} delay={0}>
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-bold tracking-tighter">{activity?.streakDays ?? 0}</span>
-                <Flame className="size-5 text-primary" />
+                <span className="text-4xl font-bold tracking-tighter">{stats?.minutes ?? 0}</span>
+                <span className="font-mono text-xs text-secondary">分钟</span>
               </div>
             </StatCard>
-            <StatCard label="周进度" mono={`${Math.round((activity?.weekProgress ?? 0) * 100)}%`} delay={60}>
-              <RingProgress value={activity?.weekProgress ?? 0} />
+            <StatCard label="完成率" mono={`${Math.round((stats?.completionRate ?? 0) * 100)}%`} delay={60}>
+              <div className="flex items-center gap-3">
+                <RingProgress value={stats?.completionRate ?? 0} />
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-bold tracking-tighter">{stats?.streakDays ?? 0}</span>
+                  <Flame className="size-4 text-primary" />
+                  <span className="font-mono text-[10px] text-secondary">天连续</span>
+                </div>
+              </div>
             </StatCard>
             <div
               className="animate-ink flex flex-col justify-between rounded-3xl bg-ink p-6 text-background shadow-xl"
@@ -102,7 +102,10 @@ function Dashboard() {
 
           <section className="animate-ink" style={{ animationDelay: "180ms" }}>
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-lg font-bold">今日任务 · 10月24日</h2>
+              <h2 className="text-lg font-bold">
+                今日待办 ·{" "}
+                {new Date().toLocaleDateString("zh-CN", { month: "long", day: "numeric" })}
+              </h2>
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => setAdding((v) => !v)}

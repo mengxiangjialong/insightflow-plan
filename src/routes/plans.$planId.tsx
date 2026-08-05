@@ -27,7 +27,7 @@ function PlanDetailPage() {
 
   const updatePhase = (phaseId: string, updater: (tasks: PhaseTask[]) => PhaseTask[]) => {
     setPlans((prev) =>
-      prev.map((p) =>
+      (prev ?? []).map((p) =>
         p.id !== planId
           ? p
           : {

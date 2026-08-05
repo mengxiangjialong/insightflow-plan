@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 
 export type AuthUser = {
   id: string;
@@ -36,6 +36,7 @@ const ADMIN_PASSWORD = "admin";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const loginWithTokenRef = useRef<((token: string) => Promise<AuthUser>) | null>(null);
 
   useEffect(() => {
     try {
@@ -60,6 +61,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const isAdmin = mail === ADMIN_EMAIL;
     if (isAdmin && password !== ADMIN_PASSWORD) throw new Error("管理员密码错误");
     if (!isAdmin && password.length < 6) throw new Error("密码至少 6 位");
+    // 优先走 Java 后端登录接口；未配置后端时回退本地校验
+    try {
+      const { api, apiMeta } = await import("./api");
+      if (!apiMeta.useMock) {
+        const { token } = await api.login(mail, password);
+        return await loginWithTokenRef.current!(token);
+      }
+    } catch (e) {
+      throw e instanceof Error ? e : new Error("登录失败");
+    }
     const u: AuthUser = {
       id: isAdmin ? "admin-1" : `u-${mail}`,
       name: isAdmin ? "管理员" : mail.split("@")[0] || "学习者",
@@ -78,6 +89,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!EMAIL_RE.test(mail)) throw new Error("邮箱格式不正确");
     if (mail === ADMIN_EMAIL) throw new Error("该邮箱为系统保留账号，无法注册");
     if (password.length < 6) throw new Error("密码至少 6 位");
+    try {
+      const { api, apiMeta } = await import("./api");
+      if (!apiMeta.useMock) {
+        const { token } = await api.register(name.trim(), mail, password);
+        return await loginWithTokenRef.current!(token);
+      }
+    } catch (e) {
+      throw e instanceof Error ? e : new Error("注册失败");
+    }
     const u: AuthUser = { id: `u-${Date.now()}`, name: name.trim(), email: mail, role: "user" };
     window.localStorage.setItem("inkplan.token", "mock-token");
     persist(u);
@@ -112,6 +132,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     persist(u);
     return u;
   }, []);
+
+  useEffect(() => {
+    loginWithTokenRef.current = loginWithToken;
+  }, [loginWithToken]);
 
   const update = useCallback(
     (patch: Partial<AuthUser>) => {
