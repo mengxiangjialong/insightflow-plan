@@ -57,7 +57,7 @@ function ProfilePage() {
           <div className="flex gap-2">
             {editing ? (
               <button
-                onClick={() => { update({ name, email }); setEditing(false); }}
+                onClick={async () => { try { const me = await api.updateMe({ name, email }); update({ name: me.name, email: me.email }); } catch { update({ name, email }); } setEditing(false); }}
                 className="flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-sm font-medium text-background"
               >
                 <Save className="size-4" /> 保存
