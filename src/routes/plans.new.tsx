@@ -36,9 +36,11 @@ function NewPlanPage() {
     e.preventDefault();
     if (!goal.trim()) return;
     setLoading(true);
+    // 先创建学习目标，再由后端 AI 生成计划
+    await api.createGoal({ title: goal.trim(), dailyMinutes, weeks, level }).catch(() => null);
     const generated = await api.generatePlan({ goal, dailyMinutes, weeks, level });
-    const plan = { ...generated, id: `p-${Date.now()}` };
-    setPlans((prev) => [plan, ...prev]);
+    const plan = { ...generated, id: generated.id || `p-${Date.now()}` };
+    setPlans((prev) => [plan, ...(prev ?? [])]);
     navigate({ to: "/plans/$planId", params: { planId: plan.id } });
   };
 
