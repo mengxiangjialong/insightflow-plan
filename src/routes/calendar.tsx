@@ -1,6 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
+import { api, type DayDetail } from "@/lib/api";
 import { useUserActivity, type ActivityDay } from "@/lib/user-data";
 
 export const Route = createFileRoute("/calendar")({
@@ -39,6 +40,18 @@ function CalendarPage() {
   const heatmap = activity?.heatmap ?? [];
   const [selected, setSelected] = useState<ActivityDay | null>(null);
   const current = selected ?? heatmap[heatmap.length - 1] ?? null;
+  const [detail, setDetail] = useState<DayDetail | null>(null);
+  useEffect(() => {
+    if (!current) return;
+    let alive = true;
+    api
+      .dayDetail(current.date)
+      .then((d) => alive && setDetail(d))
+      .catch(() => alive && setDetail(null));
+    return () => {
+      alive = false;
+    };
+  }, [current?.date]);
   const weeks: ActivityDay[][] = [];
   for (let i = 0; i < heatmap.length; i += 7) weeks.push(heatmap.slice(i, i + 7));
   const totalMinutes = heatmap.reduce((s, d) => s + d.minutes, 0);
@@ -90,6 +103,22 @@ function CalendarPage() {
                   ? `当日学习 ${current.minutes} 分钟（约 ${(current.minutes / 60).toFixed(1)} 小时）`
                   : "当日未打卡 — 明天补上一天吧 ✨"}
               </p>
+              {detail && detail.records.length > 0 && (
+                <ul className="mt-3 space-y-1.5">
+                  {detail.records.map((r) => (
+                    <li key={r.id} className="flex items-center gap-2 text-sm">
+                      <span className="rounded-full bg-surface-container px-2 py-0.5 font-mono text-[10px]">
+                        {r.category}
+                      </span>
+                      <span className="truncate">{r.title}</span>
+                      <span className="ml-auto font-mono text-xs text-secondary">{r.minutes}min</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {detail?.checkedIn && (
+                <p className="mt-3 font-mono text-xs text-primary">已打卡 CHECKED_IN</p>
+              )}
             </div>
           )}
         </section>

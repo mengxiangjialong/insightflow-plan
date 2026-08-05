@@ -4,6 +4,7 @@ import { LogOut, Save, Pencil } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { useUserActivity, useUserPlans } from "@/lib/user-data";
 import { useAuth } from "@/lib/auth";
+import { api } from "@/lib/api";
 
 export const Route = createFileRoute("/profile")({
   beforeLoad: () => {
