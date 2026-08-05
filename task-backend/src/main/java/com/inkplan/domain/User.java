@@ -10,6 +10,8 @@ public class User {
     private String password;
     private String name;
     private String role;
+    /** active / banned */
+    private String status;
     /** 登录方式：local / github */
     private String provider;
     /** 第三方账号唯一 ID（GitHub 用户 id） */
