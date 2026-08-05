@@ -47,9 +47,9 @@ public class GoalController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable String id) {
         Long uid = CurrentUser.id();
-        goals.findById(id).filter(g -> uid.equals(g.getUserId()))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND))
-                .let();
+        Goal g = goals.findById(id).filter(x -> uid.equals(x.getUserId()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        goals.delete(g);
     }
 
     private Dtos.GoalDto toDto(Goal g) {
