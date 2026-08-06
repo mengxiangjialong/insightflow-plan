@@ -1,8 +1,8 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowRight, Flame, CheckCircle2, Pencil, Trash2, Plus, Check, X } from "lucide-react";
+import { ArrowRight, Flame, Pencil, Trash2, Plus, Check, X, Loader2, AlertCircle } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
-import type { Task, TaskCategory } from "@/lib/mock-data";
+import { TASK_STATUS_OPTIONS, type Task, type TaskCategory, type TaskStatus } from "@/lib/mock-data";
 import { useTodayStats, useTodayTasks, useUserPlans } from "@/lib/user-data";
 
 export const Route = createFileRoute("/dashboard")({
@@ -21,9 +21,17 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function Dashboard() {
-  const { tasks: storedTasks, add, update, remove: removeTask, toggle: toggleTask } = useTodayTasks();
+  const {
+    tasks: storedTasks,
+    loading: tasksLoading,
+    error: tasksError,
+    add,
+    update,
+    remove: removeTask,
+    setStatus,
+  } = useTodayTasks();
   const { stats, refresh: refreshStats } = useTodayStats();
-  const [plans] = useUserPlans();
+  const { plans } = useUserPlans();
   const activePlan = plans?.[0] ?? null;
   const tasks = storedTasks ?? [];
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -35,8 +43,8 @@ function Dashboard() {
   const [newCategory, setNewCategory] = useState<TaskCategory>("READING");
   const [newMinutes, setNewMinutes] = useState(30);
   const doneCount = tasks.filter((t) => t.done).length;
-  const toggle = async (id: string) => {
-    await toggleTask(id);
+  const changeStatus = async (id: string, status: TaskStatus) => {
+    await setStatus(id, status);
     void refreshStats();
   };
   const remove = (id: string) => void removeTask(id);
