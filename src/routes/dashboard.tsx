@@ -260,7 +260,18 @@ function Dashboard() {
                   </div>
                 );
               })}
-              {tasks.length === 0 && (
+              {tasksLoading && (
+                <div className="flex items-center gap-2 rounded-2xl border border-dashed border-border-subtle bg-surface/40 p-6 text-sm text-secondary">
+                  <Loader2 className="size-4 animate-spin" /> 正在从后端加载今日待办…
+                </div>
+              )}
+              {!tasksLoading && tasksError && (
+                <div className="flex items-start gap-3 rounded-2xl border border-dashed border-border-subtle bg-surface/40 p-6 text-sm text-secondary">
+                  <AlertCircle className="mt-0.5 size-4 shrink-0 text-red-500" />
+                  <span>{tasksError}</span>
+                </div>
+              )}
+              {!tasksLoading && !tasksError && tasks.length === 0 && (
                 <div className="rounded-2xl border border-dashed border-border-subtle bg-surface/40 p-8 text-center text-sm text-secondary">
                   暂无任务，点击右上角「新建任务」开始规划今日学习。
                 </div>
