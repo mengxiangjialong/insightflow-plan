@@ -43,6 +43,7 @@ public class TaskController {
                 t.setMinutes(30);
                 t.setCategory("PRACTICE");
                 t.setDone(false);
+                t.setStatus("TODO");
                 t.setTaskDate(today);
                 tasks.save(t);
             }
@@ -64,6 +65,7 @@ public class TaskController {
         t.setMinutes(req.minutes() == null ? 30 : Math.min(600, Math.max(1, req.minutes())));
         t.setCategory(req.category() == null ? "PRACTICE" : req.category());
         t.setDone(false);
+        t.setStatus("TODO");
         t.setTaskDate(LocalDate.now());
         return toDto(tasks.save(t));
     }
@@ -86,9 +88,28 @@ public class TaskController {
     @PostMapping("/{id}/toggle")
     public Dtos.TaskDto toggle(@PathVariable String id) {
         TaskEntity t = owned(id);
-        t.setDone(!Boolean.TRUE.equals(t.getDone()));
+        boolean done = !Boolean.TRUE.equals(t.getDone());
+        t.setDone(done);
+        t.setStatus(done ? "DONE" : "TODO");
         tasks.save(t);
         study.onTaskToggled(t);
+        return toDto(t);
+    }
+
+    /** 更新任务状态：TODO / DOING / DONE。DONE 与 done 字段保持一致并同步学习记录。 */
+    @PutMapping("/{id}/status")
+    public Dtos.TaskDto setStatus(@PathVariable String id, @RequestBody Dtos.TaskStatusReq req) {
+        String status = req.status() == null ? "" : req.status().trim().toUpperCase();
+        if (!List.of("TODO", "DOING", "DONE").contains(status)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "status must be TODO/DOING/DONE");
+        }
+        TaskEntity t = owned(id);
+        boolean wasDone = Boolean.TRUE.equals(t.getDone());
+        boolean nowDone = "DONE".equals(status);
+        t.setStatus(status);
+        t.setDone(nowDone);
+        tasks.save(t);
+        if (wasDone != nowDone) study.onTaskToggled(t);
         return toDto(t);
     }
 
@@ -102,7 +123,8 @@ public class TaskController {
     private Dtos.TaskDto toDto(TaskEntity t) {
         return new Dtos.TaskDto(t.getId(), t.getTitle(), t.getDetail(),
                 t.getMinutes() == null ? 0 : t.getMinutes(), t.getCategory(),
-                Boolean.TRUE.equals(t.getDone()));
+                Boolean.TRUE.equals(t.getDone()),
+                t.getStatus() == null ? (Boolean.TRUE.equals(t.getDone()) ? "DONE" : "TODO") : t.getStatus());
     }
 
     private static String newId() {

@@ -18,7 +18,7 @@ export const Route = createFileRoute("/stats")({
 });
 
 function StatsPage() {
-  const activity = useUserActivity();
+  const { activity } = useUserActivity();
   const growthCurve = activity?.growth ?? [];
   const heatmap = activity?.heatmap ?? [];
   const max = Math.max(1, ...growthCurve.map((p) => p.hours));

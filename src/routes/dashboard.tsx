@@ -1,8 +1,8 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowRight, Flame, CheckCircle2, Pencil, Trash2, Plus, Check, X } from "lucide-react";
+import { ArrowRight, Flame, Pencil, Trash2, Plus, Check, X, Loader2, AlertCircle, ChevronDown } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
-import type { Task, TaskCategory } from "@/lib/mock-data";
+import { TASK_STATUS_OPTIONS, type Task, type TaskCategory, type TaskStatus } from "@/lib/mock-data";
 import { useTodayStats, useTodayTasks, useUserPlans } from "@/lib/user-data";
 
 export const Route = createFileRoute("/dashboard")({
@@ -21,9 +21,17 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function Dashboard() {
-  const { tasks: storedTasks, add, update, remove: removeTask, toggle: toggleTask } = useTodayTasks();
+  const {
+    tasks: storedTasks,
+    loading: tasksLoading,
+    error: tasksError,
+    add,
+    update,
+    remove: removeTask,
+    setStatus,
+  } = useTodayTasks();
   const { stats, refresh: refreshStats } = useTodayStats();
-  const [plans] = useUserPlans();
+  const { plans } = useUserPlans();
   const activePlan = plans?.[0] ?? null;
   const tasks = storedTasks ?? [];
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -35,8 +43,8 @@ function Dashboard() {
   const [newCategory, setNewCategory] = useState<TaskCategory>("READING");
   const [newMinutes, setNewMinutes] = useState(30);
   const doneCount = tasks.filter((t) => t.done).length;
-  const toggle = async (id: string) => {
-    await toggleTask(id);
+  const changeStatus = async (id: string, status: TaskStatus) => {
+    await setStatus(id, status);
     void refreshStats();
   };
   const remove = (id: string) => void removeTask(id);
@@ -184,18 +192,10 @@ function Dashboard() {
                       (t.done ? "bg-surface/40 opacity-60" : "bg-card hover:shadow-sm")
                     }
                   >
-                    <button
-                      onClick={() => toggle(t.id)}
-                      aria-label="切换完成状态"
-                      className={
-                        "grid size-6 shrink-0 place-items-center rounded border-2 transition-colors " +
-                        (t.done
-                          ? "border-ink bg-ink text-background"
-                          : "border-border-subtle hover:border-primary")
-                      }
-                    >
-                      {t.done ? <CheckCircle2 className="size-3.5" strokeWidth={3} /> : null}
-                    </button>
+                    <StatusSelect
+                      status={t.status ?? (t.done ? "DONE" : "TODO")}
+                      onChange={(s) => void changeStatus(t.id, s)}
+                    />
                     {isEditing ? (
                       <div className="min-w-0 flex-1 space-y-2">
                         <input
@@ -260,7 +260,18 @@ function Dashboard() {
                   </div>
                 );
               })}
-              {tasks.length === 0 && (
+              {tasksLoading && (
+                <div className="flex items-center gap-2 rounded-2xl border border-dashed border-border-subtle bg-surface/40 p-6 text-sm text-secondary">
+                  <Loader2 className="size-4 animate-spin" /> 正在从后端加载今日待办…
+                </div>
+              )}
+              {!tasksLoading && tasksError && (
+                <div className="flex items-start gap-3 rounded-2xl border border-dashed border-border-subtle bg-surface/40 p-6 text-sm text-secondary">
+                  <AlertCircle className="mt-0.5 size-4 shrink-0 text-red-500" />
+                  <span>{tasksError}</span>
+                </div>
+              )}
+              {!tasksLoading && !tasksError && tasks.length === 0 && (
                 <div className="rounded-2xl border border-dashed border-border-subtle bg-surface/40 p-8 text-center text-sm text-secondary">
                   暂无任务，点击右上角「新建任务」开始规划今日学习。
                 </div>
@@ -309,12 +320,12 @@ function Dashboard() {
             <div className="animate-ink rounded-3xl border-2 border-primary/20 bg-card p-6 shadow-lg">
               <div className="mb-6 flex items-center gap-3">
                 <div className="grid size-8 place-items-center rounded-lg bg-primary/10 font-bold text-primary">
-                  AI
+                  ✒
                 </div>
                 <h3 className="font-bold">个性化计划生成器</h3>
               </div>
               <p className="mb-6 text-sm text-secondary">
-                告诉 AI 你要学什么，我们为你规划分阶段学习路径。
+                告诉我们你要学什么，系统为你规划分阶段学习路径。
               </p>
               <Link
                 to="/plans/new"
@@ -333,13 +344,37 @@ function Dashboard() {
                 <div className="grid size-10 place-items-center rounded-full bg-background text-lg">
                   ✒
                 </div>
-                <span className="font-mono text-xs font-bold">STUDY MENTOR AI</span>
+                <span className="font-mono text-xs font-bold">墨策 · 学习心法</span>
               </div>
             </div>
           </div>
         </aside>
       </div>
     </AppShell>
+  );
+}
+
+function StatusSelect({ status, onChange }: { status: TaskStatus; onChange: (s: TaskStatus) => void }) {
+  const current = TASK_STATUS_OPTIONS.find((o) => o.value === status) ?? TASK_STATUS_OPTIONS[0];
+  return (
+    <div className="relative shrink-0">
+      <span
+        className={`pointer-events-none absolute left-3 top-1/2 size-2 -translate-y-1/2 rounded-full ${current.dot}`}
+      />
+      <select
+        value={status}
+        onChange={(e) => onChange(e.target.value as TaskStatus)}
+        aria-label="任务状态"
+        className="appearance-none rounded-full border border-border-subtle bg-surface py-1.5 pl-7 pr-7 text-xs font-medium outline-none transition-colors hover:border-primary focus:border-primary"
+      >
+        {TASK_STATUS_OPTIONS.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-2 top-1/2 size-3 -translate-y-1/2 text-secondary" />
+    </div>
   );
 }
 

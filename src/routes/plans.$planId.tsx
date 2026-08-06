@@ -22,7 +22,7 @@ export const Route = createFileRoute("/plans/$planId")({
 
 function PlanDetailPage() {
   const { planId } = Route.useParams();
-  const [plans, setPlans] = useUserPlans();
+  const { plans, setPlans } = useUserPlans();
   const plan: Plan | undefined = plans?.find((p) => p.id === planId);
 
   const updatePhase = (phaseId: string, updater: (tasks: PhaseTask[]) => PhaseTask[]) => {

@@ -25,8 +25,9 @@ public class Dtos {
 
     // ---- tasks ----
     public record TaskDto(String id, String title, String detail, int minutes,
-                          String category, boolean done) {}
+                          String category, boolean done, String status) {}
     public record TaskReq(String title, String detail, Integer minutes, String category) {}
+    public record TaskStatusReq(String status) {}
 
     // ---- checkin ----
     public record CheckinResp(int streakDays, String checkedInAt, boolean checkedIn) {}

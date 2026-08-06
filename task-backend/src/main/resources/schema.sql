@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS `task` (
   minutes   INT          NOT NULL,
   category  VARCHAR(32)  NOT NULL,
   done      TINYINT(1)   NOT NULL DEFAULT 0,
+  status    VARCHAR(16)  NOT NULL DEFAULT 'TODO',
   task_date DATE         NOT NULL,
   KEY idx_task_user_date (user_id, task_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -140,3 +141,7 @@ CREATE TABLE IF NOT EXISTS `sys_log` (
 
 -- GitHub 账号登录唯一约束（已存在库可单独执行）
 ALTER TABLE `user` ADD UNIQUE KEY uk_provider (provider, provider_id);
+
+-- 升级已有库：为 task 增加状态列并按 done 回填
+-- ALTER TABLE `task` ADD COLUMN status VARCHAR(16) NOT NULL DEFAULT 'TODO';
+-- UPDATE `task` SET status = IF(done = 1, 'DONE', 'TODO');

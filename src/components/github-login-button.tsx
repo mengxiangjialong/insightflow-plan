@@ -8,7 +8,7 @@ export function GithubLoginButton({ onError }: { onError?: (msg: string) => void
 
   const start = async () => {
     onError?.("");
-    if (apiMeta.useMock) {
+    if (!apiMeta.configured) {
       onError?.("GitHub 登录需连接后端（配置 VITE_API_BASE_URL 与 GitHub OAuth App）");
       return;
     }
