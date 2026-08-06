@@ -13,5 +13,7 @@ public class TaskEntity {
     private Integer minutes;
     private String category;
     private Boolean done;
+    /** TODO / DOING / DONE */
+    private String status;
     private LocalDate taskDate;
 }
