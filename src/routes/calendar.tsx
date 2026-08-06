@@ -36,7 +36,7 @@ const LEVEL_BG = [
 ];
 
 function CalendarPage() {
-  const activity = useUserActivity();
+  const { activity } = useUserActivity();
   const heatmap = activity?.heatmap ?? [];
   const [selected, setSelected] = useState<ActivityDay | null>(null);
   const current = selected ?? heatmap[heatmap.length - 1] ?? null;

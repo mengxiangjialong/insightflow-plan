@@ -23,8 +23,8 @@ export const Route = createFileRoute("/profile")({
 
 function ProfilePage() {
   const { user, update, logout } = useAuth();
-  const activity = useUserActivity();
-  const [plans] = useUserPlans();
+  const { activity } = useUserActivity();
+  const { plans } = useUserPlans();
   const myPlans = plans ?? [];
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);

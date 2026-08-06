@@ -25,7 +25,7 @@ const levels = [
 
 function NewPlanPage() {
   const navigate = useNavigate();
-  const [, setPlans] = useUserPlans();
+  const { setPlans } = useUserPlans();
   const [goal, setGoal] = useState("");
   const [dailyMinutes, setDailyMinutes] = useState(60);
   const [weeks, setWeeks] = useState(4);
@@ -50,7 +50,6 @@ function NewPlanPage() {
         <div className="animate-ink mb-8">
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-border-subtle bg-surface px-3 py-1.5 font-mono text-xs">
             <Sparkles className="size-3.5 text-primary" />
-            AI 智能引擎
           </div>
           <h2 className="text-3xl font-bold tracking-tight md:text-4xl">告诉 AI 你想学什么</h2>
           <p className="mt-3 max-w-xl text-secondary">
