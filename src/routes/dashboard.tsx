@@ -192,18 +192,10 @@ function Dashboard() {
                       (t.done ? "bg-surface/40 opacity-60" : "bg-card hover:shadow-sm")
                     }
                   >
-                    <button
-                      onClick={() => toggle(t.id)}
-                      aria-label="切换完成状态"
-                      className={
-                        "grid size-6 shrink-0 place-items-center rounded border-2 transition-colors " +
-                        (t.done
-                          ? "border-ink bg-ink text-background"
-                          : "border-border-subtle hover:border-primary")
-                      }
-                    >
-                      {t.done ? <CheckCircle2 className="size-3.5" strokeWidth={3} /> : null}
-                    </button>
+                    <StatusSelect
+                      status={t.status ?? (t.done ? "DONE" : "TODO")}
+                      onChange={(s) => void changeStatus(t.id, s)}
+                    />
                     {isEditing ? (
                       <div className="min-w-0 flex-1 space-y-2">
                         <input
