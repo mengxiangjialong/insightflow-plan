@@ -1,110 +1,87 @@
-# 墨策 InkPlan · AI 学习计划平台
+# InsightFlow · 墨策 AI 学习计划平台
 
-> 今天开始，坚持学习，遇见更好的自己。
+墨稿手稿风格的 AI 学习计划平台：AI 生成分阶段学习路径、今日待办（状态可切换）、
+学习打卡、GitHub 风格学习日历、学习统计与成长曲线，以及完整的管理后台。
 
-墨策是一个前后端分离的现代化 AI 学习计划平台：AI 根据目标生成分阶段学习路径，
-每日任务可增删改、可打卡，成长以 GitHub 风格贡献墙与曲线图可视化。
-界面遵循 Material Design 3 语汇，采用「墨稿手稿风」视觉方向，支持 PC / Pad / 手机与深色模式。
+代码分为两个独立仓库：
 
----
-
-## 1. 目录结构
-
-```
-.
-├── src/                # task-frontend：TanStack Start + React 19 + Tailwind v4
-│   ├── routes/         # 文件路由（首页 / 仪表盘 / 计划 / 日历 / 统计 / 个人中心 / 管理后台）
-│   ├── components/     # AppShell 响应式外壳、认证模态框、shadcn UI
-│   ├── lib/            # api 客户端、认证、主题、用户数据隔离层、占位数据
-│   └── styles.css      # M3 设计令牌（OKLCH/HEX）、深浅色主题、卡片高程与动效
-└── task-backend/       # Java 17 + Spring Boot 3 + MySQL 8 + Redis 7
-    └── src/main/java/com/inkplan/{config,controller,domain,dto,repository,security,service}
+```text
+insightflow-plan/
+  task-frontend/   前端：React 19 + TanStack Start + Tailwind CSS v4
+  task-backend/    后端：Java 17 + Spring Boot 3 + MySQL 8 + Redis 7
 ```
 
-## 2. 技术栈
+本仓库即 `task-frontend`（前端工程位于根目录），`task-backend/` 是完整、可独立构建的
+Maven 工程，可原样拆分为独立仓库。
 
-| 层         | 技术                                                                 |
-| ---------- | -------------------------------------------------------------------- |
-| 前端       | React 19、TanStack Start / Router、TypeScript、Tailwind CSS v4、lucide-react |
-| 设计体系   | Material Design 3 令牌化主题（浅色 / 深色）、响应式（≤640 / 768 / ≥1024） |
-| 后端       | Java 17、Spring Boot 3.3（Web / Validation / Data JPA / Security）    |
-| 存储       | MySQL 8（业务持久化）、Redis 7（打卡去重、AI 结果缓存、JWT 黑名单、热榜） |
-| 鉴权       | JWT（jjwt 0.12.x）+ BCrypt                                            |
-| 构建       | 前端 Vite 7 / Bun，后端 Maven                                        |
+## 拆分为两个仓库
 
-## 3. 功能一览
+```bash
+# 1) 后端
+cp -r task-backend /path/to/task-backend
+cd /path/to/task-backend && git init && git add . && git commit -m "init task-backend"
+git remote add origin git@github.com:<org>/task-backend.git && git push -u origin main
 
-- **AI 计划生成**：输入目标、每日投入、周期、当前水平，生成分阶段路径与检查点。
-- **今日任务**：新增 / 行内编辑 / 删除 / 勾选完成，完成率与今日进度实时联动。
-- **计划详情**：阶段折叠卡片，阶段内任务可增删改、可勾选，Enter 保存 / Esc 取消。
-- **学习日历**：GitHub 风格 20 周 × 7 天贡献墙，点选查看单日学习时长。
-- **学习统计**：成长曲线（SVG 面积图）、周投入分布、连续天数、累计专注。
-- **个人中心**：昵称 / 邮箱行内编辑，查看本人全部计划。
-- **管理后台**：用户、公告、分类、AI Prompt、统计、配置、日志七大模块，仅管理员可见。
-- **主题**：一键深浅色切换，偏好持久化。
+# 2) 前端（当前仓库，删除 task-backend 目录后推送）
+rm -rf task-backend
+git remote add origin git@github.com:<org>/task-frontend.git && git push -u origin main
+```
 
-## 4. 账号与权限
-
-| 角色     | 账号             | 说明                                       |
-| -------- | ---------------- | ------------------------------------------ |
-| 管理员   | `admin@163.com` / `admin` | 唯一管理员入口，可进入 `/admin`     |
-| 普通用户 | 任意合法邮箱 / ≥6 位密码 | 注册即用，仅可见自己的数据          |
-
-登录 / 注册均做邮箱格式校验；`admin@163.com` 为系统保留账号，不可注册。
-
-## 5. 数据隔离（重要）
-
-**每个用户的数据互相不可见**，双层保证：
-
-1. **前端**：所有学习数据经 `src/lib/user-data.ts` 读写，键名以当前登录用户 ID 命名空间化
-   —— `inkplan.u.<userId>.tasks`、`inkplan.u.<userId>.plans`；活跃度按用户 ID 确定性生成。
-   切换账号立即读到另一套数据，退出登录后回到空态。访问他人计划 ID 会展示「未找到」空态。
-2. **后端**：JWT 过滤器把 subject 写入 `SecurityContext`，所有查询/写入以
-   `CurrentUser.id()` 为过滤条件（如 `taskRepository.findByUserIdAndTaskDate(...)`），
-   Redis 打卡键为 `inkplan:checkin:{userId}:{yyyyMMdd}`，越权访问返回 404 / 403。
-
-## 6. 本地启动
-
-### 前端（task-frontend）
+## 前端 task-frontend
 
 ```bash
 bun install
-bun run dev          # http://localhost:8080
+echo "VITE_API_BASE_URL=http://localhost:8080" > .env
+bun run dev            # http://localhost:8080（前端）
 ```
 
-未配置后端地址时，前端使用内置占位数据运行（纯前端预览）。配置后自动走真实接口：
+- 所有页面数据均通过 `src/lib/api.ts` 从后端接口获取，**不含任何本地示例数据**。
+- 未配置 `VITE_API_BASE_URL` 或后端不可达时，页面显示「后端未连接 / 加载失败」空态。
+- JWT 存于 `localStorage`（`inkplan.token`），随请求以 `Authorization: Bearer` 发送。
+
+目录要点：
+
+| 路径 | 说明 |
+| --- | --- |
+| `src/lib/api.ts` | 接口客户端与错误处理（ApiError / apiErrorText） |
+| `src/lib/user-data.ts` | 数据 Hook（今日待办、今日统计、日历与成长曲线、计划） |
+| `src/lib/auth.tsx` | 登录 / 注册 / GitHub 登录、会话持久化 |
+| `src/routes/` | 首页、仪表盘、计划、日历、统计、个人中心、管理后台 |
+
+## 后端 task-backend
 
 ```bash
-# .env
-VITE_API_BASE_URL=http://localhost:8080
+cd task-backend
+mysql -uroot -p < src/main/resources/schema.sql
+mvn spring-boot:run    # http://localhost:8080
 ```
 
-### 后端（task-backend）
+配置见 `task-backend/src/main/resources/application.yml`（MySQL、Redis、JWT 密钥、
+GitHub OAuth Client ID/Secret）。
 
-```bash
-mysql -uroot -p -e "CREATE DATABASE inkplan DEFAULT CHARACTER SET utf8mb4;"
-mysql -uroot -p inkplan < task-backend/src/main/resources/schema.sql
-redis-server
-cd task-backend && mvn spring-boot:run
-```
+主要接口：
 
-## 7. 接口契约
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| POST | `/api/auth/login` `/api/auth/register` | 邮箱登录 / 注册，返回 JWT |
+| GET | `/api/auth/github/url` | GitHub OAuth 授权地址（state 存于 Redis） |
+| GET/PUT | `/api/me` | 个人信息 |
+| GET/POST | `/api/goals` | 学习目标 |
+| GET/POST | `/api/plans` `/api/plans/generate` | 学习计划与 AI 生成（结果 Redis 缓存） |
+| GET | `/api/tasks/today` | 今日待办（当天为空自动初始化默认任务） |
+| POST/PUT/DELETE | `/api/tasks` `/api/tasks/{id}` | 待办增删改 |
+| PUT | `/api/tasks/{id}/status` | 更新任务状态：`TODO` / `DOING` / `DONE` |
+| GET/POST | `/api/checkin` | 打卡状态 / 打卡（Redis 防重复） |
+| GET | `/api/stats/today` `/summary` `/heatmap` `/growth` `/day/{date}` | 学习统计 |
+| GET… | `/api/admin/**` | 用户、公告、分类、Prompt、配置、日志、统计（仅 admin） |
 
-| Method | Path                     | 说明                    |
-| ------ | ------------------------ | ----------------------- |
-| POST   | `/api/auth/login`        | 邮箱密码登录，返回 JWT  |
-| GET    | `/api/me`                | 当前用户信息            |
-| GET    | `/api/plans`             | 我的计划列表（按用户过滤） |
-| GET    | `/api/plans/{id}`        | 计划详情（校验归属）    |
-| POST   | `/api/plans/generate`    | AI 生成学习计划         |
-| GET    | `/api/tasks/today`       | 今日任务                |
-| POST   | `/api/tasks/{id}/toggle` | 切换任务完成状态        |
-| POST   | `/api/checkin`           | 每日打卡（Redis 去重）  |
+## 权限与数据隔离
 
-前端契约定义见 `src/lib/api.ts`（含请求失败自动回退占位数据的能力）。
+- 系统管理员固定为 `admin@163.com`（密码 `admin`），该邮箱不可注册。
+- 后端所有查询以 JWT 中的 `CurrentUser.id()` 过滤，越权访问返回 404，
+  因此不同账号的任务、计划与统计互不可见。
 
-## 8. 约定
+## 任务状态
 
-- 颜色、阴影、圆角一律使用 `src/styles.css` 中的语义令牌，组件内不写死颜色类。
-- 路由文件即页面，勿手改 `src/routeTree.gen.ts`。
-- 新增用户级数据请走 `useScopedState`，避免绕过隔离层。
+今日待办每行提供状态下拉框：`未开始 TODO` / `进行中 DOING` / `已完成 DONE`。
+切换为 `DONE` 时写入学习记录并刷新今日统计；取消完成会回退记录。
