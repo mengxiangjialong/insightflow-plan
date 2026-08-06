@@ -320,12 +320,12 @@ function Dashboard() {
             <div className="animate-ink rounded-3xl border-2 border-primary/20 bg-card p-6 shadow-lg">
               <div className="mb-6 flex items-center gap-3">
                 <div className="grid size-8 place-items-center rounded-lg bg-primary/10 font-bold text-primary">
-                  AI
+                  ✒
                 </div>
                 <h3 className="font-bold">个性化计划生成器</h3>
               </div>
               <p className="mb-6 text-sm text-secondary">
-                告诉 AI 你要学什么，我们为你规划分阶段学习路径。
+                告诉我们你要学什么，系统为你规划分阶段学习路径。
               </p>
               <Link
                 to="/plans/new"
@@ -344,7 +344,7 @@ function Dashboard() {
                 <div className="grid size-10 place-items-center rounded-full bg-background text-lg">
                   ✒
                 </div>
-                <span className="font-mono text-xs font-bold">STUDY MENTOR AI</span>
+                <span className="font-mono text-xs font-bold">墨策 · 学习心法</span>
               </div>
             </div>
           </div>
