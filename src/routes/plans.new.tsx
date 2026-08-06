@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowRight, Loader2, Sparkles } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { api } from "@/lib/api";
 import { useUserPlans } from "@/lib/user-data";
@@ -48,10 +48,7 @@ function NewPlanPage() {
     <AppShell title="生成学习计划" breadcrumb="PLANS / NEW">
       <div className="mx-auto max-w-3xl px-4 py-8 md:px-10 md:py-12">
         <div className="animate-ink mb-8">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-border-subtle bg-surface px-3 py-1.5 font-mono text-xs">
-            <Sparkles className="size-3.5 text-primary" />
-          </div>
-          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">告诉 AI 你想学什么</h2>
+          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">告诉我们你想学什么</h2>
           <p className="mt-3 max-w-xl text-secondary">
             我们会基于你的目标、可投入时间与当前水平，生成分阶段学习路径，包含每日任务与检查点。
           </p>

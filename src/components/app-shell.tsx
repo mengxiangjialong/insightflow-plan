@@ -103,12 +103,7 @@ export function AppShell({
             ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-3">
-            {actions ?? (
-              <div className="hidden items-center gap-2 rounded-full border border-border-subtle bg-surface px-3 py-1.5 md:flex">
-                <span className="size-2 animate-pulse rounded-full bg-green-600" />
-                <span className="text-xs font-medium">AI 助教已就绪</span>
-              </div>
-            )}
+            {actions ?? null}
             <button
               onClick={toggle}
               className="grid size-9 place-items-center rounded-full border border-border-subtle md:hidden"
