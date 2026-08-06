@@ -54,54 +54,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = useCallback(async (email: string, password: string) => {
-    await new Promise((r) => setTimeout(r, 300));
     if (!email || !password) throw new Error("请输入邮箱与密码");
     const mail = email.trim().toLowerCase();
     if (!EMAIL_RE.test(mail)) throw new Error("邮箱格式不正确");
     const isAdmin = mail === ADMIN_EMAIL;
     if (isAdmin && password !== ADMIN_PASSWORD) throw new Error("管理员密码错误");
     if (!isAdmin && password.length < 6) throw new Error("密码至少 6 位");
-    // 优先走 Java 后端登录接口；未配置后端时回退本地校验
+    // 登录一律走 task-backend 接口
+    const { api, apiErrorText } = await import("./api");
     try {
-      const { api, apiMeta } = await import("./api");
-      if (!apiMeta.useMock) {
-        const { token } = await api.login(mail, password);
-        return await loginWithTokenRef.current!(token);
-      }
+      const { token } = await api.login(mail, password);
+      return await loginWithTokenRef.current!(token);
     } catch (e) {
-      throw e instanceof Error ? e : new Error("登录失败");
+      throw new Error(apiErrorText(e));
     }
-    const u: AuthUser = {
-      id: isAdmin ? "admin-1" : `u-${mail}`,
-      name: isAdmin ? "管理员" : mail.split("@")[0] || "学习者",
-      email: mail,
-      role: isAdmin ? "admin" : "user",
-    };
-    window.localStorage.setItem("inkplan.token", "mock-token");
-    persist(u);
-    return u;
   }, []);
 
   const register = useCallback(async (name: string, email: string, password: string) => {
-    await new Promise((r) => setTimeout(r, 400));
     if (!name || !email || !password) throw new Error("请填写完整信息");
     const mail = email.trim().toLowerCase();
     if (!EMAIL_RE.test(mail)) throw new Error("邮箱格式不正确");
     if (mail === ADMIN_EMAIL) throw new Error("该邮箱为系统保留账号，无法注册");
     if (password.length < 6) throw new Error("密码至少 6 位");
+    const { api, apiErrorText } = await import("./api");
     try {
-      const { api, apiMeta } = await import("./api");
-      if (!apiMeta.useMock) {
-        const { token } = await api.register(name.trim(), mail, password);
-        return await loginWithTokenRef.current!(token);
-      }
+      const { token } = await api.register(name.trim(), mail, password);
+      return await loginWithTokenRef.current!(token);
     } catch (e) {
-      throw e instanceof Error ? e : new Error("注册失败");
+      throw new Error(apiErrorText(e));
     }
-    const u: AuthUser = { id: `u-${Date.now()}`, name: name.trim(), email: mail, role: "user" };
-    window.localStorage.setItem("inkplan.token", "mock-token");
-    persist(u);
-    return u;
   }, []);
 
   const logout = useCallback(() => {
