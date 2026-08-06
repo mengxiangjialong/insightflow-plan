@@ -1,10 +1,14 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
-  Users, Megaphone, Tag, Bot, BarChart3, Settings, ScrollText, Trash2,
+  Users, Megaphone, Tag, Bot, BarChart3, Settings, ScrollText, Trash2, Loader2, AlertCircle,
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
-import { adminUsers, announcements, categories, aiPrompts, systemLogs } from "@/lib/mock-data";
+import {
+  api, apiErrorText,
+  type AdminStats, type AdminUser, type Announcement, type CategoryItem,
+  type ConfigItem, type LogItem, type Prompt,
+} from "@/lib/api";
 
 export const Route = createFileRoute("/admin")({
   beforeLoad: () => {
@@ -22,7 +26,7 @@ export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
       { title: "管理后台 · 墨策" },
-      { name: "description", content: "用户、公告、分类、AI Prompt、系统日志与统计。" },
+      { name: "description", content: "用户、公告、分类、Prompt 模板、系统日志与统计。" },
     ],
   }),
   component: AdminPage,
@@ -32,13 +36,74 @@ const tabs = [
   { id: "users", label: "用户管理", icon: Users },
   { id: "announcements", label: "公告管理", icon: Megaphone },
   { id: "categories", label: "分类管理", icon: Tag },
-  { id: "prompts", label: "AI Prompt", icon: Bot },
+  { id: "prompts", label: "Prompt 模板", icon: Bot },
   { id: "stats", label: "数据统计", icon: BarChart3 },
   { id: "config", label: "系统配置", icon: Settings },
   { id: "logs", label: "日志查看", icon: ScrollText },
 ] as const;
 
 type TabId = (typeof tabs)[number]["id"];
+
+/** 通用远程数据 Hook：所有面板数据均来自 task-backend。 */
+function useRemote<T>(fetcher: () => Promise<T>, deps: unknown[] = []) {
+  const [data, setData] = useState<T | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const load = useCallback(fetcher, deps);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      setData(await load());
+      setError(null);
+    } catch (e) {
+      setData(null);
+      setError(apiErrorText(e));
+    } finally {
+      setLoading(false);
+    }
+  }, [load]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  return { data, loading, error, refresh, setData };
+}
+
+function Panel({
+  loading, error, empty, children,
+}: {
+  loading: boolean;
+  error: string | null;
+  empty?: boolean;
+  children: React.ReactNode;
+}) {
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 py-10 text-sm text-secondary">
+        <Loader2 className="size-4 animate-spin" /> 正在从后端加载…
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="flex items-start gap-3 rounded-2xl border border-dashed border-border-subtle bg-surface/50 p-6 text-sm text-secondary">
+        <AlertCircle className="mt-0.5 size-4 shrink-0 text-red-500" />
+        <span>{error}</span>
+      </div>
+    );
+  }
+  if (empty) {
+    return (
+      <div className="rounded-2xl border border-dashed border-border-subtle bg-surface/50 p-8 text-center text-sm text-secondary">
+        暂无数据
+      </div>
+    );
+  }
+  return <>{children}</>;
+}
 
 function AdminPage() {
   const [tab, setTab] = useState<TabId>("users");
@@ -81,121 +146,161 @@ function AdminPage() {
 }
 
 function UsersPanel() {
-  const [rows, setRows] = useState(adminUsers);
+  const { data, loading, error, refresh } = useRemote<AdminUser[]>(() => api.admin.users());
+  const rows = data ?? [];
+  const del = async (id: number) => {
+    try {
+      await api.admin.deleteUser(id);
+      await refresh();
+    } catch {
+      /* 错误在下一次加载时呈现 */
+    }
+  };
   return (
-    <Table
-      title="用户列表"
-      cols={["昵称", "邮箱", "角色", "状态", "加入时间", ""]}
-      rows={rows.map((u) => [
-        u.name,
-        <span key="e" className="font-mono text-xs">{u.email}</span>,
-        <Badge key="r" tone={u.role === "admin" ? "primary" : "muted"}>{u.role}</Badge>,
-        <Badge key="s" tone={u.status === "active" ? "success" : "danger"}>{u.status}</Badge>,
-        u.joinedAt,
-        <button
-          key="d"
-          onClick={() => setRows((r) => r.filter((x) => x.id !== u.id))}
-          className="grid size-8 place-items-center rounded-lg text-secondary hover:bg-surface-container hover:text-red-500"
-          aria-label="删除"
-        >
-          <Trash2 className="size-4" />
-        </button>,
-      ])}
-    />
+    <Panel loading={loading} error={error} empty={rows.length === 0}>
+      <Table
+        title="用户列表"
+        cols={["昵称", "邮箱", "角色", "状态", "加入时间", ""]}
+        rows={rows.map((u) => [
+          u.name,
+          <span key="e" className="font-mono text-xs">{u.email}</span>,
+          <Badge key="r" tone={u.role === "admin" ? "primary" : "muted"}>{u.role}</Badge>,
+          <Badge key="s" tone={u.status === "active" ? "success" : "danger"}>{u.status}</Badge>,
+          u.joinedAt,
+          <button
+            key="d"
+            onClick={() => void del(u.id)}
+            className="grid size-8 place-items-center rounded-lg text-secondary hover:bg-surface-container hover:text-red-500"
+            aria-label="删除"
+          >
+            <Trash2 className="size-4" />
+          </button>,
+        ])}
+      />
+    </Panel>
   );
 }
 
 function AnnouncementsPanel() {
+  const { data, loading, error } = useRemote<Announcement[]>(() => api.admin.announcements());
+  const rows = data ?? [];
   return (
-    <Table
-      title="公告"
-      cols={["标题", "发布时间", "置顶"]}
-      rows={announcements.map((a) => [
-        a.title,
-        <span key="d" className="font-mono text-xs">{a.createdAt}</span>,
-        <Badge key="p" tone={a.pinned ? "primary" : "muted"}>{a.pinned ? "已置顶" : "普通"}</Badge>,
-      ])}
-    />
+    <Panel loading={loading} error={error} empty={rows.length === 0}>
+      <Table
+        title="公告"
+        cols={["标题", "发布时间", "置顶"]}
+        rows={rows.map((a) => [
+          a.title,
+          <span key="d" className="font-mono text-xs">{a.createdAt}</span>,
+          <Badge key="p" tone={a.pinned ? "primary" : "muted"}>{a.pinned ? "已置顶" : "普通"}</Badge>,
+        ])}
+      />
+    </Panel>
   );
 }
 
 function CategoriesPanel() {
+  const { data, loading, error } = useRemote<CategoryItem[]>(() => api.admin.categories());
+  const rows = data ?? [];
   return (
-    <Table
-      title="分类"
-      cols={["名称", "关联计划数"]}
-      rows={categories.map((c) => [c.name, <span key="n" className="font-mono">{c.count}</span>])}
-    />
+    <Panel loading={loading} error={error} empty={rows.length === 0}>
+      <Table
+        title="分类"
+        cols={["名称", "关联计划数"]}
+        rows={rows.map((c) => [c.name, <span key="n" className="font-mono">{c.count}</span>])}
+      />
+    </Panel>
   );
 }
 
 function PromptsPanel() {
+  const { data, loading, error } = useRemote<Prompt[]>(() => api.admin.prompts());
+  const rows = data ?? [];
   return (
-    <Table
-      title="AI Prompt"
-      cols={["名称", "模型", "更新时间"]}
-      rows={aiPrompts.map((p) => [p.name, <Badge key="m" tone="primary">{p.model}</Badge>, <span key="u" className="font-mono text-xs">{p.updatedAt}</span>])}
-    />
+    <Panel loading={loading} error={error} empty={rows.length === 0}>
+      <Table
+        title="Prompt 模板"
+        cols={["名称", "场景", "状态", "更新时间"]}
+        rows={rows.map((p) => [
+          p.name,
+          <span key="s" className="font-mono text-xs">{p.scene}</span>,
+          <Badge key="e" tone={p.enabled ? "success" : "muted"}>{p.enabled ? "启用" : "停用"}</Badge>,
+          <span key="u" className="font-mono text-xs">{p.updatedAt}</span>,
+        ])}
+      />
+    </Panel>
   );
 }
 
 function StatsPanel() {
-  const cards = [
-    { label: "总用户", value: "2,341" },
-    { label: "今日活跃", value: "482" },
-    { label: "AI 生成计划", value: "1,205" },
-    { label: "本月新增", value: "312" },
-  ];
+  const { data, loading, error } = useRemote<AdminStats>(() => api.admin.stats());
+  const cards = data
+    ? [
+        { label: "总用户", value: data.users },
+        { label: "计划总数", value: data.plans },
+        { label: "任务总数", value: data.tasks },
+        { label: "今日打卡", value: data.checkinsToday },
+        { label: "7 日活跃", value: data.activeUsers7d },
+      ]
+    : [];
   return (
-    <div>
-      <h3 className="mb-6 text-lg font-bold">平台数据</h3>
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {cards.map((c) => (
-          <div key={c.label} className="rounded-2xl border border-border-subtle bg-surface p-5">
-            <p className="font-mono text-xs uppercase text-secondary">{c.label}</p>
-            <p className="mt-2 text-2xl font-bold tracking-tight">{c.value}</p>
-          </div>
-        ))}
+    <Panel loading={loading} error={error} empty={cards.length === 0}>
+      <div>
+        <h3 className="mb-6 text-lg font-bold">平台数据</h3>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+          {cards.map((c) => (
+            <div key={c.label} className="rounded-2xl border border-border-subtle bg-surface p-5">
+              <p className="font-mono text-xs uppercase text-secondary">{c.label}</p>
+              <p className="mt-2 text-2xl font-bold tracking-tight">{c.value.toLocaleString()}</p>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </Panel>
   );
 }
 
 function ConfigPanel() {
+  const { data, loading, error } = useRemote<ConfigItem[]>(() => api.admin.configs());
+  const rows = data ?? [];
   return (
-    <div>
-      <h3 className="mb-6 text-lg font-bold">系统配置</h3>
-      <div className="space-y-4">
-        {[
-          { k: "站点名称", v: "墨策 · AI 学习计划平台" },
-          { k: "开放注册", v: "开启" },
-          { k: "AI 网关", v: "Lovable AI Gateway" },
-          { k: "缓存策略", v: "Redis 30 分钟" },
-        ].map((r) => (
-          <div key={r.k} className="flex items-center justify-between border-b border-border-subtle py-3">
-            <span className="font-medium">{r.k}</span>
-            <span className="font-mono text-sm text-secondary">{r.v}</span>
-          </div>
-        ))}
+    <Panel loading={loading} error={error} empty={rows.length === 0}>
+      <div>
+        <h3 className="mb-6 text-lg font-bold">系统配置</h3>
+        <div className="space-y-4">
+          {rows.map((r) => (
+            <div key={r.id} className="flex items-center justify-between gap-4 border-b border-border-subtle py-3">
+              <div className="min-w-0">
+                <span className="font-medium">{r.key}</span>
+                {r.description ? <p className="truncate text-xs text-secondary">{r.description}</p> : null}
+              </div>
+              <span className="shrink-0 font-mono text-sm text-secondary">{r.value}</span>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </Panel>
   );
 }
 
 function LogsPanel() {
+  const { data, loading, error } = useRemote<LogItem[]>(() => api.admin.logs());
+  const rows = data ?? [];
   return (
-    <div>
-      <h3 className="mb-6 text-lg font-bold">系统日志</h3>
-      <div className="space-y-2 font-mono text-xs">
-        {systemLogs.map((l) => (
-          <div key={l.id} className="flex items-center gap-3 rounded-lg bg-surface/60 px-3 py-2">
-            <Badge tone={l.level === "ERROR" ? "danger" : l.level === "WARN" ? "primary" : "muted"}>{l.level}</Badge>
-            <span className="text-secondary">{l.at}</span>
-            <span className="text-ink">{l.message}</span>
-          </div>
-        ))}
+    <Panel loading={loading} error={error} empty={rows.length === 0}>
+      <div>
+        <h3 className="mb-6 text-lg font-bold">系统日志</h3>
+        <div className="space-y-2 font-mono text-xs">
+          {rows.map((l) => (
+            <div key={l.id} className="flex items-center gap-3 rounded-lg bg-surface/60 px-3 py-2">
+              <Badge tone={l.level === "ERROR" ? "danger" : l.level === "WARN" ? "primary" : "muted"}>{l.level}</Badge>
+              <span className="text-secondary">{l.createdAt}</span>
+              <span className="truncate text-ink">{l.message}</span>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </Panel>
   );
 }
 
