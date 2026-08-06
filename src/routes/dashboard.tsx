@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowRight, Flame, Pencil, Trash2, Plus, Check, X, Loader2, AlertCircle } from "lucide-react";
+import { ArrowRight, Flame, Pencil, Trash2, Plus, Check, X, Loader2, AlertCircle, ChevronDown } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { TASK_STATUS_OPTIONS, type Task, type TaskCategory, type TaskStatus } from "@/lib/mock-data";
 import { useTodayStats, useTodayTasks, useUserPlans } from "@/lib/user-data";
@@ -340,6 +340,30 @@ function Dashboard() {
         </aside>
       </div>
     </AppShell>
+  );
+}
+
+function StatusSelect({ status, onChange }: { status: TaskStatus; onChange: (s: TaskStatus) => void }) {
+  const current = TASK_STATUS_OPTIONS.find((o) => o.value === status) ?? TASK_STATUS_OPTIONS[0];
+  return (
+    <div className="relative shrink-0">
+      <span
+        className={`pointer-events-none absolute left-3 top-1/2 size-2 -translate-y-1/2 rounded-full ${current.dot}`}
+      />
+      <select
+        value={status}
+        onChange={(e) => onChange(e.target.value as TaskStatus)}
+        aria-label="任务状态"
+        className="appearance-none rounded-full border border-border-subtle bg-surface py-1.5 pl-7 pr-7 text-xs font-medium outline-none transition-colors hover:border-primary focus:border-primary"
+      >
+        {TASK_STATUS_OPTIONS.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-2 top-1/2 size-3 -translate-y-1/2 text-secondary" />
+    </div>
   );
 }
 
