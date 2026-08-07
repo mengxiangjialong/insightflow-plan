@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Sparkles, PlayCircle, Flame, Target, LineChart, CalendarDays } from "lucide-react";
+import { ArrowRight, Sparkles, PlayCircle, Flame, Target, LineChart } from "lucide-react";
 import { useState } from "react";
 import { useTheme } from "@/lib/theme";
 import { useAuth } from "@/lib/auth";
