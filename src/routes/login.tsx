@@ -58,9 +58,6 @@ function LoginPage() {
         <p className="text-center text-sm text-secondary">
           还没有账号？<Link to="/register" className="text-primary hover:underline">立即注册</Link>
         </p>
-        <p className="text-center font-mono text-xs text-secondary">
-          管理员账号：admin@163.com / admin
-        </p>
       </form>
       <div className="mt-4">
         <GithubLoginButton onError={(m) => setErr(m || null)} />

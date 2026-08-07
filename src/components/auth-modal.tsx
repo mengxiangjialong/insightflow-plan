@@ -131,11 +131,6 @@ export function AuthModal({
               {mode === "login" ? "立即注册" : "直接登录"}
             </button>
           </p>
-          {mode === "login" && (
-            <p className="text-center font-mono text-xs text-secondary">
-              管理员账号：admin@163.com / admin
-            </p>
-          )}
         </form>
         <div className="mt-4">
           <GithubLoginButton onError={(m) => setErr(m || null)} />
