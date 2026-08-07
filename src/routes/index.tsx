@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Sparkles, PlayCircle, Flame, Target, LineChart, CalendarDays } from "lucide-react";
+import { ArrowRight, Sparkles, PlayCircle, Flame, Target, LineChart } from "lucide-react";
 import { useState } from "react";
 import { useTheme } from "@/lib/theme";
 import { useAuth } from "@/lib/auth";
@@ -62,10 +62,9 @@ function Landing() {
       </header>
 
       <main>
-        <section className="relative mx-auto max-w-6xl px-5 pb-10 pt-12 md:px-6 md:pb-16 md:pt-24">
+        <section className="relative mx-auto max-w-3xl px-5 pb-14 pt-16 text-center md:pb-24 md:pt-28">
           <div className="pointer-events-none absolute inset-x-0 -top-10 mx-auto h-64 max-w-3xl rounded-full bg-primary/5 blur-3xl" />
-          <div className="relative grid items-center gap-12 md:grid-cols-[1.05fr_0.95fr]">
-          <div className="text-center md:text-left">
+          <div className="relative">
           <p className="animate-ink mb-5 inline-flex items-center gap-2 rounded-full border border-border-subtle bg-surface px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-widest text-secondary">
             <Flame className="size-3.5 text-primary" /> keep learning every day
           </p>
@@ -74,10 +73,10 @@ function Landing() {
             <br />
             <span className="text-primary">遇见更好的自己。</span>
           </h1>
-          <p className="animate-ink mx-auto mt-5 max-w-xl text-secondary md:mx-0 md:mt-6 md:text-lg" style={{ animationDelay: "120ms" }}>
-            为你量身定制学习路径，每日任务清晰可执行，进度与成长一眼看得见。
+          <p className="animate-ink mx-auto mt-5 max-w-xl text-secondary md:mt-6 md:text-lg" style={{ animationDelay: "120ms" }}>
+            为你量身定制学习路径，让每一次坚持都留下痕迹。
           </p>
-          <div className="animate-ink mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-center md:mt-10 md:justify-start" style={{ animationDelay: "200ms" }}>
+          <div className="animate-ink mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-center md:mt-10" style={{ animationDelay: "200ms" }}>
             {user ? (
               <Link
                 to="/dashboard"
@@ -105,56 +104,13 @@ function Landing() {
               生成学习计划
             </Link>
           </div>
-          <dl className="animate-ink mt-10 grid grid-cols-3 gap-3 border-t border-border-subtle pt-6 text-center md:text-left" style={{ animationDelay: "280ms" }}>
-            {[
-              { k: "分阶段", v: "路径规划" },
-              { k: "每日", v: "任务打卡" },
-              { k: "可视化", v: "成长曲线" },
-            ].map((s) => (
-              <div key={s.k}>
-                <dt className="text-base font-bold tracking-tight md:text-lg">{s.k}</dt>
-                <dd className="mt-1 font-mono text-[11px] text-secondary">{s.v}</dd>
-              </div>
-            ))}
-          </dl>
-          </div>
-
-          <div className="animate-ink relative mx-auto w-full max-w-sm md:max-w-none" style={{ animationDelay: "340ms" }}>
-            <div className="rounded-3xl border border-border-subtle bg-card p-5 shadow-xl md:p-6">
-              <div className="flex items-center justify-between">
-                <p className="font-mono text-[11px] uppercase tracking-widest text-secondary">今日待办</p>
-                <span className="rounded-full bg-primary/10 px-2.5 py-1 font-mono text-[11px] text-primary">3 / 4</span>
-              </div>
-              <ul className="mt-4 space-y-2.5">
-                {[
-                  { t: "Spring Boot 事务传播", s: "已完成" },
-                  { t: "Redis 缓存穿透", s: "已完成" },
-                  { t: "动态规划 · 背包", s: "进行中" },
-                  { t: "英语精读 20 分钟", s: "未开始" },
-                ].map((x) => (
-                  <li key={x.t} className="flex items-center justify-between gap-3 rounded-xl border border-border-subtle bg-surface px-3.5 py-2.5">
-                    <span className={"truncate text-sm " + (x.s === "已完成" ? "text-secondary line-through" : "")}>{x.t}</span>
-                    <span className="shrink-0 font-mono text-[11px] text-secondary">{x.s}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-5 flex items-center gap-2">
-                <CalendarDays className="size-4 text-primary" />
-                <div className="flex flex-1 gap-1">
-                  {[0.2, 0.5, 0.8, 1, 0.6, 0.9, 0.35].map((o, i) => (
-                    <span key={i} className="h-6 flex-1 rounded-md bg-primary" style={{ opacity: o }} />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
           </div>
         </section>
 
-        <section className="mx-auto grid max-w-6xl grid-cols-1 gap-4 px-5 pb-20 sm:grid-cols-2 md:grid-cols-3 md:gap-6 md:px-6 md:pb-24">
-          <Feature icon={Sparkles} title="个性化路径" desc="根据目标、水平与可投入时间生成分阶段计划。" />
-          <Feature icon={Target} title="每日任务打卡" desc="清单化今日任务，一键完成，坚持有反馈。" />
-          <Feature icon={LineChart} title="成长看得见" desc="日历热力图与成长曲线，学习进步可视化。" />
+        <section className="mx-auto grid max-w-4xl grid-cols-1 gap-4 px-5 pb-20 sm:grid-cols-3 md:gap-6 md:px-6 md:pb-24">
+          <Feature icon={Sparkles} title="学习路径" desc="围绕目标与可投入时间，梳理清晰的学习节奏。" />
+          <Feature icon={Target} title="专注执行" desc="把目标拆成能落地的动作，坚持有反馈。" />
+          <Feature icon={LineChart} title="持续积累" desc="记录学习轨迹，让进步有迹可循。" />
         </section>
       </main>
 
