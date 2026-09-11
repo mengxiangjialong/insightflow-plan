@@ -85,3 +85,7 @@ GitHub OAuth Client ID/Secret）。
 
 今日待办每行提供状态下拉框：`未开始 TODO` / `进行中 DOING` / `已完成 DONE`。
 切换为 `DONE` 时写入学习记录并刷新今日统计；取消完成会回退记录。
+
+## 运行结果
+<img width="1898" height="870" alt="image" src="https://github.com/user-attachments/assets/fef50723-dc1a-40dd-86e2-48394221b9bf" />
+
